@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    {"id": "data_analyst", "title": "資料分析師", "subtitleEn": "Data Analyst",
+     "shortSubtitle": "數據 · 45-65k", "salary": "45-65k", "openings": "1,240",
+     "matchScore": 92, "missingSkills": ["SQL 進階", "A/B test", "用戶研究"],
+     "category": "數據", "isAcademic": false, "academicNote": ""},
+    {"id": "researcher", "title": "研究員", "subtitleEn": "Researcher",
+     "shortSubtitle": "學術 · 依機構", "salary": "依機構", "openings": "380",
+     "matchScore": 65, "missingSkills": ["論文發表", "研究方法", "碩博學歷"],
+     "category": "學術", "isAcademic": true,
+     "academicNote": "想走學術路線?先看看研究員的一天,以及碩博升學的時程規劃。"}
+  ]
+}

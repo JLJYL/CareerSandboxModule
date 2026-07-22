@@ -1,0 +1,12 @@
+{
+  "jdKeywords": ["數據分析", "SQL", "報表", "Excel", "Python"],
+  "coveredKeywords": ["數據分析", "SQL", "報表", "Excel"],
+  "items": [
+    {"text": "協助業務團隊整理銷售數據,用 SQL + Excel 產出週報。",
+     "matchedKeywords": ["數據分析", "SQL", "報表", "Excel"], "highlighted": true},
+    {"text": "負責年度成發活動的社群推廣,從零開始建立 IG 帳號,九個月內累積 1200 名追蹤。",
+     "matchedKeywords": ["數據分析"], "highlighted": false},
+    {"text": "用 PostgreSQL 與 React 做出一個小型圖書管理系統。",
+     "matchedKeywords": ["SQL", "Excel"], "highlighted": true}
+  ]
+}

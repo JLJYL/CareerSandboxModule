@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {"type": "strength", "title": "數據分析證據鏈完整",
+     "detail": "四段經歷中有三段以數據分析為核心,且橫跨社團、實習與競賽,對數據類職缺是強而多元的證據。",
+     "relatedSkills": ["數據分析", "SQL", "報表"]},
+    {"type": "gap", "title": "目標 JD 常見的 A/B 測試尚無經歷覆蓋",
+     "detail": "你鎖定的兩個職缺都要求 A/B 測試,但母版目前沒有任何一段經歷能對應。",
+     "relatedSkills": ["A/B 測試"]},
+    {"type": "suggestion", "title": "把課程專題往「資料」方向重新包裝",
+     "detail": "圖書管理系統專題可強調 PostgreSQL 的資料模型設計,而非前端,對數據職缺版本更有利。",
+     "relatedSkills": ["SQL", "資料庫設計"]}
+  ]
+}
