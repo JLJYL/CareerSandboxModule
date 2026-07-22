@@ -1,0 +1,13 @@
+{
+  "_comment": "MongoDB Atlas Vector Search 索引定義 — collection: career_knowledge。開對齊會時直接交給資料庫組。維度 1024 = bge-m3,換 embedding 模型即屬合約變更(CONTRACTS.md #3)。",
+  "name": "career_knowledge_vec_idx",
+  "type": "vectorSearch",
+  "definition": {
+    "fields": [
+      { "type": "vector", "path": "embedding", "numDimensions": 1024, "similarity": "cosine" },
+      { "type": "filter", "path": "type" },
+      { "type": "filter", "path": "skills" },
+      { "type": "filter", "path": "metadata.industry" }
+    ]
+  }
+}

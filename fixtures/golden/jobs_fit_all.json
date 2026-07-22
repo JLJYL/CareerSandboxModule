@@ -1,0 +1,12 @@
+{
+  "jobs": [
+    {"jobId": "fit_da", "title": "資料分析師", "company": "蝦皮",
+     "tags": ["資料", "全職", "初級"], "salary": "55-85k", "deadline": "11/02 截止",
+     "matchScore": 88, "styleTag": "硬實力強",
+     "requiredSkills": ["SQL", "Python", "統計", "資料視覺化", "A/B 測試"]},
+    {"jobId": "fit_pm", "title": "Junior PM", "company": "Acer",
+     "tags": ["產品實習", "全職", "初級"], "salary": "50-80k", "deadline": "10/14 截止",
+     "matchScore": 82, "styleTag": "數據導向型",
+     "requiredSkills": ["SQL", "使用者訪談", "A/B 測試", "Figma", "Python", "GA4"]}
+  ]
+}

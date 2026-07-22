@@ -1,0 +1,18 @@
+[
+  {"id": "kb_001", "type": "job_skill", "title": "資料分析師的核心技能",
+   "content": "資料分析師日常以 SQL 取數與清理為主,搭配 Python 或 Excel 做分析與視覺化;進階職缺普遍要求 A/B 測試設計與統計檢定能力,並重視把分析轉成商業建議的敘事能力。",
+   "skills": ["SQL", "Python", "統計", "資料視覺化", "A/B 測試"],
+   "metadata": {"industry": "科技/網路", "source": "seed_manual", "careerId": "data_analyst"}},
+  {"id": "kb_002", "type": "career_path", "title": "從資料分析走向資料工程的常見路徑",
+   "content": "累積 2-3 年取數與報表自動化經驗後,常見往資料工程發展:先接觸排程工具(如 Airflow)與資料倉儲設計,再進入管線維運。",
+   "skills": ["SQL", "Airflow", "資料倉儲設計"],
+   "metadata": {"industry": "科技/網路", "source": "seed_manual", "careerId": "data_engineer"}},
+  {"id": "kb_003", "type": "job_skill", "title": "初階產品經理的職能組成",
+   "content": "初階 PM 職缺重視使用者訪談、PRD 撰寫與跨部門溝通;具備 SQL 取數與 A/B 測試素養者在數據導向團隊更吃香。",
+   "skills": ["使用者訪談", "PRD 撰寫", "SQL", "A/B 測試"],
+   "metadata": {"industry": "科技/網路", "source": "seed_manual", "careerId": "pm"}},
+  {"id": "kb_004", "type": "industry", "title": "台灣電商產業的數據職缺概況",
+   "content": "台灣電商業對數據職缺需求穩定,初階薪資帶多落在 45-85k;職缺普遍要求能獨立產出週報並向非技術同事說明結論。",
+   "skills": ["SQL", "報表", "溝通"],
+   "metadata": {"industry": "電商", "source": "seed_manual", "careerId": "data_analyst"}}
+]

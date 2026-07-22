@@ -1,0 +1,17 @@
+{
+  "draftExperiences": [
+    {"id": "e_ai_1", "title": "校內社團行銷組長", "category": "社團",
+     "timeRange": "2024.09 - 2025.06",
+     "description": "負責年度成發活動的社群推廣,從零開始建立 IG 帳號,九個月內累積 1200 名追蹤。",
+     "tags": ["領導", "內容創作", "數據分析"],
+     "sourceQuote": "我大二在系學會當行銷組長,把社團 IG 從零做到一千二追蹤",
+     "confidence": 86},
+    {"id": "e_ai_2", "title": "電商公司資料分析實習", "category": "工作",
+     "timeRange": "2025.07 - 2025.09",
+     "description": "協助業務團隊整理銷售數據,用 SQL + Excel 產出週報。",
+     "tags": ["數據分析", "SQL", "報表", "Excel"],
+     "sourceQuote": "暑假在電商實習,每週用 SQL 跟 Excel 拉數據做週報給業務",
+     "confidence": 92}
+  ],
+  "skills": ["數據分析", "SQL", "報表", "Excel", "內容創作", "領導"]
+}
