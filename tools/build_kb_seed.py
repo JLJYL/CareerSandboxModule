@@ -9,7 +9,10 @@
 以決定性排序編號（同輸入重跑，編號不變）。skills[] 一律先過詞彙表 alias 對照
 轉成標準名，對不上才保留原字串。
 
-文章類（type="article"）刻意不轉：著作權限制＋type 枚舉未定，留待 Day 1–2 決議。
+文章類（type="article"）依決議通知 §一-5 轉出至**獨立檔案** kb_entries.articles.v1.json：
+每篇切成約 900 字的段落塊（過長硬切於句號），ID 用 kb_a{n} 前綴與種子庫脫鉤。
+著作權鐵律：文章僅供檢索，生成引用必改寫並附 metadata.url 出處；文中原有的
+驚嘆號屬來源語料，不受生成文字鐵律約束（該鐵律只管我們生成的展示文字）。
 
 用法：
   python tools/build_kb_seed.py \
@@ -32,7 +35,7 @@ sys.path.insert(0, str(REPO))
 
 from app.schemas.domain import KBEntry  # noqa: E402
 
-ALLOWED_TYPES = {"job_skill", "career_path", "industry"}
+ALLOWED_TYPES = {"job_skill", "career_path", "industry", "article"}  # article：W2 決議擴充
 
 # ---- job_skill：要轉的科技/數位職類（依 jobCount 排序後編號）
 JOB_SKILL_OCCS = [
@@ -87,6 +90,32 @@ def strip_bang(s: str) -> str:
     return s.replace("！", "。").replace("!", ".")
 
 
+def chunk_text(text: str, target: int = 900, hard: int = 1200) -> list[str]:
+    """把長文按段落切成 ≤target 字的檢索塊；超長段落於句號硬切；過短尾塊併回前塊。"""
+    paras = [p.strip() for p in text.replace("\r\n", "\n").split("\n") if p.strip()]
+    chunks, cur = [], ""
+    for p in paras:
+        while len(p) > hard:
+            cut = p.rfind("。", 0, target)
+            cut = cut + 1 if cut > int(target * 0.4) else target
+            if cur:
+                chunks.append(cur)
+                cur = ""
+            chunks.append(p[:cut])
+            p = p[cut:]
+        if cur and len(cur) + 1 + len(p) > target:
+            chunks.append(cur)
+            cur = p
+        else:
+            cur = f"{cur}\n{p}" if cur else p
+    if cur:
+        chunks.append(cur)
+    if len(chunks) >= 2 and len(chunks[-1]) < 200 and len(chunks[-2]) + len(chunks[-1]) < hard:
+        tail = chunks.pop()
+        chunks[-1] = chunks[-1] + "\n" + tail
+    return chunks
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--career-knowledge", required=True, type=Path)
@@ -99,6 +128,8 @@ def main():
                     default=REPO / "fixtures/kb_seed/kb_entries.sample.json")
     ap.add_argument("--out", type=Path,
                     default=REPO / "fixtures/kb_seed/kb_entries.v1.json")
+    ap.add_argument("--articles-out", type=Path,
+                    default=REPO / "fixtures/kb_seed/kb_entries.articles.v1.json")
     args = ap.parse_args()
 
     # 詞彙表 alias 對照：norm(任一名) → 標準顯示名
@@ -219,6 +250,41 @@ def main():
     dist = Counter(e["type"] for e in entries)
     print(f"kb_seed v1：{len(entries)} 條 → {args.out.relative_to(REPO)}")
     print(f"  type 分布：{dict(dist)}（含手寫種子 kb_001–004）")
+
+    # -------------------------------------------------- article（獨立檔案）
+    # 決議通知 §一-5：僅供檢索；生成引用必改寫＋附 metadata.url。
+    # 排序決定性：(source, sourceId, part)，同輸入重跑 ID 不變。
+    articles = sorted(
+        (r for r in load_jsonl(args.career_knowledge) if r.get("type") == "article"),
+        key=lambda r: (r["source"], str(r["sourceId"])),
+    )
+    a_entries: list[dict] = []
+    for art in articles:
+        assert art.get("url") and art.get("title"), f"文章缺 url/title：{art.get('sourceId')}"
+        chunks = chunk_text(art.get("text") or "")
+        n = len(chunks)
+        tags = art.get("tags") or []
+        mapped = list(dict.fromkeys(
+            alias2canon[norm(t)] for t in tags if norm(t) in alias2canon))[:8]
+        for i, ch in enumerate(chunks, 1):
+            title = art["title"] if n == 1 else f"{art['title']}（{i}/{n}）"
+            a_entries.append(dict(
+                id=f"kb_a{len(a_entries) + 1:03d}",
+                type="article", title=title, content=ch, skills=mapped,
+                metadata=dict(source=art["source"], sourceId=str(art["sourceId"]),
+                              url=art["url"], publishedAt=art.get("publishedAt") or "",
+                              tags=tags, part=i, parts=n),
+            ))
+
+    a_ids = [e["id"] for e in a_entries]
+    assert len(a_ids) == len(set(a_ids)) and not set(a_ids) & set(ids), "article id 衝突"
+    for e in a_entries:
+        KBEntry.model_validate(e)
+        assert 0 < len(e["content"]) <= 1400, f"塊長異常：{e['id']}"
+    args.articles_out.write_text(json.dumps(a_entries, ensure_ascii=False, indent=1),
+                                 encoding="utf-8")
+    print(f"kb_seed articles：{len(articles)} 篇 → {len(a_entries)} 塊 "
+          f"→ {args.articles_out.relative_to(REPO)}")
 
 
 if __name__ == "__main__":

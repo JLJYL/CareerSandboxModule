@@ -45,7 +45,8 @@
 | 落地欄位 | 內部對應（domain.KBEntry） | 說明 |
 |---|---|---|
 | `_id` | `id` | `kb_{n}` |
-| `type` | `type` | 對齊 03 的值：`job_skill` / `career_path` / `industry`（kb_seed 已同步） |
+| `type` | `type` | 四值：job_skill / career_path / industry / article（article 為 W2 決議擴充：第三方文章僅供檢索，生成引用必改寫並附 metadata.url 出處）
+~~對齊 03 的值：`job_skill` / `career_path` / `industry`（kb_seed 已同步） |~~
 | `text` | `content` | 條目原文；欄位名差異在 repository 層轉換 |
 | `title`、`skills[]` | `title`、`skills` | 03 草案沒有、**我方新增**：title 供除錯呈現，skills 是檢索 filter |
 | `embedding[1024]` | —（寫入時計算） | bge-m3；維度寫死於索引，換模型＝合約變更 |

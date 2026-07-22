@@ -67,7 +67,8 @@ def test_kb_v1_ids_unique_and_prefixed():
 
 def test_kb_v1_types_legal():
     for e in _kb_entries():
-        assert e["type"] in {"job_skill", "career_path", "industry"}
+        # article 為 W2 決議擴充的第四值（決議通知 §一-5）
+        assert e["type"] in {"job_skill", "career_path", "industry", "article"}
 
 
 def test_kb_v1_lists_never_null():
@@ -76,6 +77,44 @@ def test_kb_v1_lists_never_null():
 
 
 def test_kb_v1_no_exclamation_marks():
+    # 註：此鐵律只管我們生成的展示文字；article 檔為第三方來源語料，豁免
     for e in _kb_entries():
         for text in (e["title"], e["content"], *e["skills"]):
             assert "!" not in text and "！" not in text, e["id"]
+
+
+# ---------------------------------------------------------------- kb_seed articles v1
+
+KB_ARTICLES = FIXTURES / "kb_seed" / "kb_entries.articles.v1.json"
+
+
+def _kb_articles():
+    return json.loads(KB_ARTICLES.read_text(encoding="utf-8"))
+
+
+def test_kb_articles_schema_and_type():
+    entries = _kb_articles()
+    assert len(entries) >= 164            # 至少一篇一塊，長文會切成多塊
+    for e in entries:
+        KBEntry.model_validate(e)
+        assert e["type"] == "article"
+        assert e["content"].strip()
+
+
+def test_kb_articles_ids_unique_and_disjoint():
+    a_ids = [e["id"] for e in _kb_articles()]
+    assert len(a_ids) == len(set(a_ids))
+    assert all(i.startswith("kb_a") for i in a_ids)
+    assert not set(a_ids) & {e["id"] for e in _kb_entries()}
+
+
+def test_kb_articles_have_citation_fields():
+    # 著作權鐵律的前提：生成引用必附出處，故每塊必帶 url/source/sourceId
+    for e in _kb_articles():
+        m = e["metadata"]
+        assert m.get("url") and m.get("source") and m.get("sourceId")
+
+
+def test_kb_articles_chunk_sizes():
+    for e in _kb_articles():
+        assert 0 < len(e["content"]) <= 1400
