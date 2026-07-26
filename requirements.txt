@@ -3,7 +3,7 @@ uvicorn[standard]>=0.30
 pydantic>=2.7
 pytest>=8.0
 httpx>=0.27
-# --- Phase 2 起才需要（先別裝，保持骨架輕量）---
+# --- Phase 2 deps (do not install yet; keep the skeleton light) ---
 # chromadb
-# FlagEmbedding        # bge-m3
-# openai               # 或任何 OpenAI 相容 SDK
+# FlagEmbedding        # bge-m3 embeddings
+# openai               # or any OpenAI-compatible SDK
