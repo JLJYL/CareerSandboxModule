@@ -10,10 +10,15 @@ import json
 from pathlib import Path
 
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 
+from app.pipeline.extraction import ExtractionError, LlmExtractor
+from app.pipeline.profile import aggregate_display_skills, build_profile
+from app.providers.llm import LLMUnavailable, OpenAICompatibleLLM
 from app.schemas.api import (
     CareerRecommendRequest, CareerRecommendResponse,
     CustomizeRequest, CustomizeResponse,
+    DraftExperience,
     JobsFitRequest, JobFitOut, JobsFitAllResponse,
     MasterGenerateRequest, MasterGenerateResponse,
     OverviewRequest, OverviewResponse,
@@ -28,10 +33,46 @@ def _golden(name: str) -> dict:
     return json.loads((_GOLDEN / f"{name}.json").read_text(encoding="utf-8"))
 
 
-@router.post("/resume/master/generate", response_model=MasterGenerateResponse)
-def master_generate(req: MasterGenerateRequest) -> MasterGenerateResponse:
-    # TODO(第 1 週, 成員 B): extractor.extract(req.narratives) → normalize → 組裝
-    return MasterGenerateResponse.model_validate(_golden("resume_master_generate"))
+def _build_extractor() -> LlmExtractor | None:
+    """LLM 有設定 → 真擷取;沒設定(本地無 .env、CI)→ None,端點退 golden。"""
+    try:
+        return LlmExtractor(OpenAICompatibleLLM())
+    except LLMUnavailable:
+        return None
+
+
+def _error(status: int, code: str, message: str) -> JSONResponse:
+    return JSONResponse(status_code=status,
+                        content={"error": {"code": code, "message": message}})
+
+
+@router.post("/resume/master/generate", response_model=MasterGenerateResponse,
+             responses={502: {"description": "LLM 或擷取失敗,統一錯誤格式"}})
+def master_generate(req: MasterGenerateRequest):
+    extractor = _build_extractor()
+    if extractor is None:
+        # golden 模式:讓前端/CI 在沒有金鑰時仍拿到正確形狀
+        return MasterGenerateResponse.model_validate(_golden("resume_master_generate"))
+    try:
+        drafts = extractor.extract(req.narratives)
+    except LLMUnavailable as e:
+        return _error(502, "llm_unavailable", str(e))
+    except ExtractionError as e:
+        return _error(502, "extraction_failed", str(e))
+
+    profile = build_profile(req.userId, drafts, normalizer=None)  # W2 起插入 A 的 Normalizer
+    return MasterGenerateResponse(
+        draftExperiences=[
+            DraftExperience(
+                id=f"e_ai_{i}", title=d.title, category=d.category,
+                timeRange=d.time_range, description=d.description,
+                tags=d.raw_skills, sourceQuote=d.source_quote,
+                confidence=d.confidence,
+            )
+            for i, d in enumerate(drafts, 1)
+        ],
+        skills=aggregate_display_skills(profile),
+    )
 
 
 @router.post("/career/recommend", response_model=CareerRecommendResponse)
