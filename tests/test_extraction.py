@@ -67,3 +67,26 @@ def test_profile_w1_and_w2_modes():
 
     p2 = build_profile("dev_user_001", drafts, StubNorm())
     assert p2.skills[0].skill_id == "skill_sns" and "內容創作" in p2.raw_tags
+
+
+def test_quote_tolerates_whitespace_only_differences():
+    """條列輸入的隱形行尾空白/換行,不該讓誠實引句被誤殺(syn_03 之亂的政策落地)。"""
+    narr = ["- 參與迎新宿營活動，擔任活動組成員  \n- 設計並執行兩個團康關卡，增進新生互動"]
+    good = json.dumps({"experiences": [{
+        "title": "迎新宿營活動組", "category": "社團", "time_range": "",
+        "description": "設計並執行兩個團康關卡。", "raw_skills": ["活動企劃"],
+        "source_quote": "參與迎新宿營活動，擔任活動組成員\n- 設計並執行兩個團康關卡",
+        "confidence": 70}]}, ensure_ascii=False)
+    drafts = LlmExtractor(FakeLLM(good)).extract(narr)
+    assert drafts[0].title == "迎新宿營活動組"
+
+
+def test_rewritten_numeral_in_quote_still_rejected():
+    """空白容忍不等於放水:引句把「兩個」改寫成「2 個」仍然是字元級改寫,退稿。"""
+    narr = ["- 設計並執行兩個團康關卡"]
+    bad = json.dumps({"experiences": [{
+        "title": "x", "category": "社團", "time_range": "", "description": "y",
+        "raw_skills": ["a"], "source_quote": "設計並執行 2 個團康關卡",
+        "confidence": 50}]}, ensure_ascii=False)
+    with pytest.raises(ExtractionError):
+        LlmExtractor(SeqLLM([bad, bad])).extract(narr)

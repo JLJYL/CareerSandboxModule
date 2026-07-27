@@ -5,6 +5,7 @@
 「內容好不好」靠 prompts/extraction.py 的迭代——那是你這週的工作。
 """
 import json
+import re
 
 from app.pipeline.textrules import sanitize_display_text
 from app.prompts.extraction import RETRY_SUFFIX, SYSTEM_PROMPT, build_user_prompt
@@ -12,6 +13,15 @@ from app.providers.llm import LLMProvider
 from app.schemas.domain import ExtractedExperience
 
 _LEGAL_CATEGORIES = {"社團", "工作", "競賽", "學業"}
+
+_WS = re.compile(r"\s+")
+
+
+def _squash_ws(s: str) -> str:
+    """去除所有空白(半形/全形/換行)。引句比對只在「有內容的字元」上逐字嚴格:
+    條列輸入的隱形行尾空白與換行不該誤殺誠實的引句;
+    但任何字元級改寫(兩→2、增刪標點、縫合時補逗號)仍一律退稿。"""
+    return _WS.sub("", s)
 
 
 class ExtractionError(Exception):
@@ -34,7 +44,7 @@ def _parse_payload(raw: str, full_input: str) -> list[ExtractedExperience]:
         exp = ExtractedExperience.model_validate(it)
         if exp.category not in _LEGAL_CATEGORIES:
             raise ValueError(f"category 不合法: {exp.category}")
-        if exp.source_quote not in full_input:
+        if _squash_ws(exp.source_quote) not in _squash_ws(full_input):
             # 鐵則 2：證據句必須逐字存在於輸入——防捏造的機械防線
             raise ValueError(f"source_quote 不是輸入子字串: {exp.source_quote[:30]}")
         exp.title = sanitize_display_text(exp.title)
@@ -60,7 +70,9 @@ class LlmExtractor:
         except (ValueError, json.JSONDecodeError) as first_err:
             # 重試一次：把失敗原因回饋給模型
             raw2 = self._llm.complete(
-                SYSTEM_PROMPT, user_prompt + RETRY_SUFFIX, force_json=True
+                SYSTEM_PROMPT,
+                user_prompt + RETRY_SUFFIX + f"\n上次的具體問題:{first_err}",
+                force_json=True,
             )
             try:
                 return _parse_payload(raw2, full_input)

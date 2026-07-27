@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.pipeline.extraction import LlmExtractor          # noqa: E402
+from app.pipeline.extraction import ExtractionError, LlmExtractor  # noqa: E402
 from app.pipeline.textrules import ai_flavor_hits          # noqa: E402
 from app.providers.llm import LLMUnavailable, OpenAICompatibleLLM  # noqa: E402
 
@@ -27,7 +27,15 @@ def main() -> None:
         sys.exit(f"[X] {e}\n    先把 .env.example 複製成 .env 並填入金鑰。")
 
     print(f"來源: {src}\n{'=' * 60}")
-    drafts = extractor.extract(narratives)
+    try:
+        drafts = extractor.extract(narratives)
+    except ExtractionError as e:
+        sys.exit(
+            "[品管未過] 寫手兩次交稿都被防捏造防線退回,本輪不產卡。\n"
+            f"  防線的退稿理由:{e}\n"
+            "  最常見原因:source_quote 沒有逐字照抄(拼接多行、改寫數字、增刪標點)。\n"
+            "  處置:回 app/prompts/extraction.py 補強引句規則後重跑。"
+        )
     for i, d in enumerate(drafts, 1):
         print(f"\n[卡片 {i}] {d.title}  ({d.category} | {d.time_range} | 信心 {d.confidence})")
         print(f"  描述: {d.description}")
