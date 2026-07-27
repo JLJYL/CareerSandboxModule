@@ -1,17 +1,11 @@
-# 祕密與環境
 .env
 venv/
 .venv/
-
-# Python 產物
 __pycache__/
 *.pyc
 .pytest_cache/
-
-# 向量庫本地資料(W2 起)
 chroma_data/
-
-# 真實履歷樣本:即使去識別化也別進公開 repo(組內用雲端硬碟/私訊共享)
+data/
 fixtures/samples/*
 !fixtures/samples/README.md
 !fixtures/samples/jd_data_analyst.txt
