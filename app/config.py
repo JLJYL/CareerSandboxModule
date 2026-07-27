@@ -1,4 +1,14 @@
+"""設定。附極簡 .env 載入(無第三方依賴):存在 .env 就逐行讀 KEY=VALUE。"""
 import os
+from pathlib import Path
+
+_ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+if _ENV_FILE.exists():
+    for line in _ENV_FILE.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, _, v = line.partition("=")
+            os.environ.setdefault(k.strip(), v.split("#")[0].strip())
 
 
 class Settings:

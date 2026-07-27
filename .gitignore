@@ -1,5 +1,11 @@
-__pycache__/
-.pytest_cache/
-.venv/
 .env
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+chroma_data/
 data/
+fixtures/samples/*
+!fixtures/samples/README.md
+!fixtures/samples/jd_data_analyst.txt

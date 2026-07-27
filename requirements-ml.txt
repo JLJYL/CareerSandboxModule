@@ -1,6 +1,6 @@
-# 本機開發才裝(CI 不裝:torch 太重、模型 2.3GB 走 HF 快取)
-# 刻意不用 FlagEmbedding(與 transformers 的 dtype 改名互踩)、
-# 不裝 sentencepiece(原生擴充在 Windows+Py3.13 會 access violation;已裝者請 pip uninstall)
+# Local dev only - CI skips this file (torch is huge; model comes from HF cache)
+# Deliberately NOT using FlagEmbedding (dtype rename clash with transformers 4.x)
+# Do NOT install sentencepiece (native ext crashes on Windows; uninstall if present)
 torch>=2.2
 transformers>=4.44,<5
 huggingface_hub<1.0
