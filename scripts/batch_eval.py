@@ -8,6 +8,7 @@
 """
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -33,13 +34,20 @@ def _time_match(extracted: str, spoken: str) -> bool:
     return extracted != "" and (extracted in spoken or spoken in extracted)
 
 
-def grade_sample(drafts, answer: dict) -> dict:
-    """純函式,可測。回傳各硬指標布林與軟指標數值。"""
+def _squash(s: str) -> str:
+    return re.sub(r"\s+", "", s)
+
+
+def grade_sample(drafts, answer: dict, narrative: str = "") -> dict:
+    """純函式,可測。對「現實」改卷:答案卡的 spokenPeriod 若沒真的出現在敘述原文裡
+    (出題寫手吞了台詞),期望降級為空字串——引擎誠實給空算對,腦補時間照樣抓。"""
     expected = answer.get("expectedExperiences", [])
     exp_cats = sorted(TYPE_TO_CATEGORY.get(e.get("type", ""), "?") for e in expected)
     got_cats = sorted(d.category for d in drafts)
 
-    spoken = [e.get("spokenPeriod", "") for e in expected]
+    nsq = _squash(narrative)
+    spoken = [s if (s and _squash(s) in nsq) else ""
+              for s in (e.get("spokenPeriod", "") for e in expected)]
     times = [d.time_range for d in drafts]
     remaining = list(times)
     time_ok = True
@@ -69,7 +77,8 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=0)
     args = ap.parse_args()
 
-    txts = sorted(p for p in Path(args.dir).glob("*.txt"))
+    txts = sorted(p for p in Path(args.dir).glob("*.txt")
+                  if not p.name.startswith("jd_"))   # JD 是職缺文本,不是履歷考卷
     if args.limit:
         txts = txts[: args.limit]
     if not txts:
@@ -93,12 +102,13 @@ def main() -> None:
             continue
 
         if ans_path.exists():
-            g = grade_sample(drafts, json.loads(ans_path.read_text(encoding="utf-8")))
+            g = grade_sample(drafts, json.loads(ans_path.read_text(encoding="utf-8")),
+                            narrative=txt.read_text(encoding="utf-8"))
             graded += 1
             ok = g["card_count_ok"] and g["categories_ok"] and g["time_ok"]
             passed += ok
             hard_fail += 0 if ok else 1
-            recall = f" 技能召回 {g['skills_recall']:.0%}" if g["skills_recall"] is not None else ""
+            recall = f" 技能召回(參考) {g['skills_recall']:.0%}" if g["skills_recall"] is not None else ""
             print(f"[{'PASS' if ok else 'FAIL'}] {txt.name}  {g['detail']}"
                   f" 時間{'✓' if g['time_ok'] else '✗'}{recall}")
         else:
