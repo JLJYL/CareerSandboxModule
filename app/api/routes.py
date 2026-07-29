@@ -13,6 +13,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from app.pipeline.extraction import ExtractionError, LlmExtractor
+from app.pipeline.normalize import VocabNormalizer
 from app.pipeline.profile import aggregate_display_skills, build_profile
 from app.providers.llm import LLMUnavailable, OpenAICompatibleLLM
 from app.schemas.api import (
@@ -31,6 +32,22 @@ _GOLDEN = Path(__file__).resolve().parents[2] / "fixtures" / "golden"
 
 def _golden(name: str) -> dict:
     return json.loads((_GOLDEN / f"{name}.json").read_text(encoding="utf-8"))
+
+
+_NORMALIZER: VocabNormalizer | None = None
+
+
+def _get_normalizer() -> VocabNormalizer:
+    """懶載單例:有 torch+模型 → 三段全開(alias→向量最近鄰→殘留);
+    沒有(CI、乾淨環境)→ alias-only 降級——同一個介面,能力降級不缺席。"""
+    global _NORMALIZER
+    if _NORMALIZER is None:
+        try:
+            from app.providers.embeddings import BgeM3Embedding
+            _NORMALIZER = VocabNormalizer(embedding=BgeM3Embedding())
+        except Exception:
+            _NORMALIZER = VocabNormalizer()
+    return _NORMALIZER
 
 
 def _build_extractor() -> LlmExtractor | None:
@@ -60,7 +77,8 @@ def master_generate(req: MasterGenerateRequest):
     except ExtractionError as e:
         return _error(502, "extraction_failed", str(e))
 
-    profile = build_profile(req.userId, drafts, normalizer=None)  # W2 起插入 A 的 Normalizer
+    normalizer = _get_normalizer()          # W2:A 的正規化器正式上線
+    profile = build_profile(req.userId, drafts, normalizer=normalizer)
     return MasterGenerateResponse(
         draftExperiences=[
             DraftExperience(
@@ -71,7 +89,7 @@ def master_generate(req: MasterGenerateRequest):
             )
             for i, d in enumerate(drafts, 1)
         ],
-        skills=aggregate_display_skills(profile),
+        skills=aggregate_display_skills(profile, name_of=normalizer.display_name),
     )
 
 
