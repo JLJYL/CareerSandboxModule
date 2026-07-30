@@ -1,0 +1,43 @@
+[
+  {
+    "id": "data_analyst",
+    "title": "資料分析師",
+    "subtitleEn": "Data Analyst",
+    "category": "數據",
+    "isAcademic": false,
+    "salary": "依市場",
+    "openings": "10",
+    "requiredSkills": [
+      "A/B 測試",
+      "Python",
+      "SQL",
+      "統計",
+      "資料視覺化"
+    ]
+  },
+  {
+    "id": "data_engineer",
+    "title": "資料工程師",
+    "subtitleEn": "Data Engineer",
+    "category": "數據",
+    "isAcademic": false,
+    "salary": "依市場",
+    "openings": "6",
+    "requiredSkills": []
+  },
+  {
+    "id": "pm",
+    "title": "產品企劃／PM",
+    "subtitleEn": "Product Planner",
+    "category": "產品",
+    "isAcademic": false,
+    "salary": "34-45k",
+    "openings": "172",
+    "requiredSkills": [
+      "A/B 測試",
+      "PRD 撰寫",
+      "SQL",
+      "使用者訪談"
+    ]
+  }
+]

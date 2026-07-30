@@ -12,6 +12,7 @@ from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from app.config import settings
 from app.pipeline.extraction import ExtractionError, LlmExtractor
 from app.pipeline.normalize import VocabNormalizer
 from app.pipeline.profile import aggregate_display_skills, build_profile
@@ -53,7 +54,7 @@ def _get_normalizer() -> VocabNormalizer:
 def _build_extractor() -> LlmExtractor | None:
     """LLM 有設定 → 真擷取;沒設定(本地無 .env、CI)→ None,端點退 golden。"""
     try:
-        return LlmExtractor(OpenAICompatibleLLM())
+        return LlmExtractor(OpenAICompatibleLLM(model=settings.llm_model_extract or None))
     except LLMUnavailable:
         return None
 
@@ -93,10 +94,35 @@ def master_generate(req: MasterGenerateRequest):
     )
 
 
+def _build_reco_deps():
+    """真檢索+真尺(要 torch+模型);建不起來(CI/乾淨機)→ None → 端點退 golden。"""
+    try:
+        from app.pipeline.scorer import WeightedScorer
+        from app.providers.embeddings import BgeM3Embedding
+        from app.retrieval.vector_retriever import VectorRetriever
+        emb = BgeM3Embedding()
+        norm = _get_normalizer()
+        return (VectorRetriever(embedding=emb,
+                                persist_path=Path("data/kb_index.json")),
+                WeightedScorer(norm, embedding=emb), norm)
+    except Exception:
+        return None
+
+
 @router.post("/career/recommend", response_model=CareerRecommendResponse)
 def career_recommend(req: CareerRecommendRequest) -> CareerRecommendResponse:
-    # TODO(第 2 週, 成員 B): retriever.search(req.query) → LLM 生成 → 差集用 Scorer
-    return CareerRecommendResponse.model_validate(_golden("career_recommend"))
+    deps = _build_reco_deps()
+    if deps is None:
+        return CareerRecommendResponse.model_validate(_golden("career_recommend"))
+    retriever, scorer, normalizer = deps
+    try:
+        llm = OpenAICompatibleLLM()          # 生成任務吃全域預設(建議 gpt-4o-mini)
+    except LLMUnavailable:
+        llm = None                            # 沒金鑰 → 純分數排序,C1 照樣出貨
+    from app.pipeline.recommend import recommend
+    recs = recommend(req.query, req.experiences, normalizer=normalizer,
+                     retriever=retriever, scorer=scorer, llm=llm)
+    return CareerRecommendResponse(recommendations=recs)
 
 
 @router.post("/jobs/fit-all", response_model=JobsFitAllResponse)

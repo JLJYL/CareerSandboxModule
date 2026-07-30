@@ -14,7 +14,8 @@ if _ENV_FILE.exists():
 class Settings:
     llm_base_url: str = os.getenv("LLM_BASE_URL", "")
     llm_api_key: str = os.getenv("LLM_API_KEY", "")
-    llm_model: str = os.getenv("LLM_MODEL", "")
+    llm_model: str = os.getenv("LLM_MODEL", "")                 # 全域預設(建議 gpt-4o-mini)
+    llm_model_extract: str = os.getenv("LLM_MODEL_EXTRACT", "")  # 擷取專用(建議 gpt-4o;空=用預設)
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "bge-m3")
 
 

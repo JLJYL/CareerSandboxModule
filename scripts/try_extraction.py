@@ -7,6 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from app.config import settings  # noqa: E402
 from app.pipeline.extraction import ExtractionError, LlmExtractor  # noqa: E402
 from app.pipeline.textrules import ai_flavor_hits          # noqa: E402
 from app.providers.llm import LLMUnavailable, OpenAICompatibleLLM  # noqa: E402
@@ -22,7 +23,7 @@ def main() -> None:
         narratives, src = [DEMO], "(內建示範敘述)"
 
     try:
-        extractor = LlmExtractor(OpenAICompatibleLLM())
+        extractor = LlmExtractor(OpenAICompatibleLLM(model=settings.llm_model_extract or None))
     except LLMUnavailable as e:
         sys.exit(f"[X] {e}\n    先把 .env.example 複製成 .env 並填入金鑰。")
 
