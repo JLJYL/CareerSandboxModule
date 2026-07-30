@@ -51,6 +51,23 @@ def _get_normalizer() -> VocabNormalizer:
     return _NORMALIZER
 
 
+_SCORER = None
+
+
+def _get_scorer():
+    """懶載單例:有模型 → 覆蓋+語意雙腿;沒有(CI)→ 覆蓋率單腿,仍為確定性分數。"""
+    global _SCORER
+    if _SCORER is None:
+        from app.pipeline.scorer import WeightedScorer
+        norm = _get_normalizer()
+        try:
+            from app.providers.embeddings import BgeM3Embedding
+            _SCORER = WeightedScorer(norm, embedding=BgeM3Embedding())
+        except Exception:
+            _SCORER = WeightedScorer(norm)
+    return _SCORER
+
+
 def _build_extractor() -> LlmExtractor | None:
     """LLM 有設定 → 真擷取;沒設定(本地無 .env、CI)→ None,端點退 golden。"""
     try:
@@ -127,14 +144,24 @@ def career_recommend(req: CareerRecommendRequest) -> CareerRecommendResponse:
 
 @router.post("/jobs/fit-all", response_model=JobsFitAllResponse)
 def jobs_fit_all(req: JobsFitRequest) -> JobsFitAllResponse:
-    # TODO(第 2 週): 對知識庫內每個職缺跑 Scorer
-    return JobsFitAllResponse.model_validate(_golden("jobs_fit_all"))
+    from app.pipeline.jobs_fit import fit_all
+    from app.pipeline.recommend import profile_from_experiences
+    normalizer = _get_normalizer()
+    profile = profile_from_experiences(req.userId, req.experiences, normalizer)
+    return JobsFitAllResponse(jobs=fit_all(profile, _get_scorer()))
 
 
-@router.post("/jobs/{job_id}/fit", response_model=JobFitOut)
-def job_fit(job_id: str, req: JobsFitRequest) -> JobFitOut:
-    # TODO(第 2 週): 依 job_id 取 JD → Scorer → 回填真分數與差距
-    return JobFitOut.model_validate(_golden("job_fit"))
+@router.post("/jobs/{job_id}/fit", response_model=JobFitOut,
+             responses={404: {"description": "jobId 不存在,統一錯誤格式"}})
+def job_fit(job_id: str, req: JobsFitRequest):
+    from app.pipeline.jobs_fit import fit_one, load_jobs
+    from app.pipeline.recommend import profile_from_experiences
+    job = next((j for j in load_jobs() if j["jobId"] == job_id), None)
+    if job is None:
+        return _error(404, "job_not_found", f"查無職缺 {job_id}")
+    normalizer = _get_normalizer()
+    profile = profile_from_experiences(req.userId, req.experiences, normalizer)
+    return fit_one(profile, job, _get_scorer())
 
 
 @router.post("/resume/customize", response_model=CustomizeResponse)
