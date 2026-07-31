@@ -38,6 +38,11 @@ def profile_from_experiences(user_id: str, experiences: list[ExperienceIn],
     return UserProfile(user_id=user_id, skills=list(skills.values()), raw_tags=residual)
 
 
+def _usable_chunks(chunks) -> list:
+    """先剔除 metadata.offtopic=true 的雜訊(A 標註的發票/颱風等民生新聞),再同篇去重。"""
+    return _dedupe_chunks([c for c in chunks if not c.entry.metadata.get("offtopic")])
+
+
 def _dedupe_chunks(chunks) -> list:
     """article 切塊同篇只留最高分(合約:同篇引用一次)。非 article 原樣保留。"""
     best: dict[str, object] = {}
@@ -73,7 +78,7 @@ def recommend(query: str, experiences: list[ExperienceIn], *, normalizer, retrie
     skill_names = [normalizer.display_name(s.skill_id) for s in profile.skills] \
         + profile.raw_tags if normalizer else profile.raw_tags
 
-    chunks = _dedupe_chunks(retriever.search(query, k=8)) if retriever else []
+    chunks = _usable_chunks(retriever.search(query, k=8)) if retriever else []
     seen_cids = {c.entry.metadata.get("careerId") for c in chunks} - {None}  # 僅供紀錄/摘錄
     # 候選一律全型錄:型錄僅個位數格,全量計分成本趨零;且 93% 的庫是未標 careerId
     # 的 article(啞巴選民),靠檢索提名會餓死候選——待 A 補標與型錄長大後再回來做 ∩ 最佳化。
