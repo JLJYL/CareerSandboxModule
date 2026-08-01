@@ -5,6 +5,12 @@ from app.main import app
 
 client = TestClient(app, raise_server_exceptions=False)
 
+import json as _json
+from pathlib import Path as _Path
+_FIRST_JOB_ID = _json.loads(
+    (_Path(__file__).resolve().parents[1] / "fixtures/jobs/jobs_v1.json"
+     ).read_text(encoding="utf-8"))[0]["jobId"]
+
 EXP = {"id": "e2", "title": "電商公司資料分析實習", "category": "工作",
        "timeRange": "2025.07 - 2025.09",
        "description": "協助業務團隊整理銷售數據,用 SQL + Excel 產出週報。",
@@ -16,7 +22,7 @@ def test_all_endpoints_return_valid_shape():
         ("/resume/master/generate", {"userId": "dev_user_001", "narratives": ["我在社團當行銷組長"]}),
         ("/career/recommend", {"userId": "dev_user_001", "query": "我喜歡整理數據", "experiences": [EXP]}),
         ("/jobs/fit-all", {"userId": "dev_user_001", "experiences": [EXP]}),
-        ("/jobs/fit_da/fit", {"userId": "dev_user_001", "experiences": [EXP]}),
+        (f"/jobs/{_FIRST_JOB_ID}/fit", {"userId": "dev_user_001", "experiences": [EXP]}),
         ("/resume/customize", {"userId": "dev_user_001", "jobId": "fit_da", "experiences": [EXP]}),
         ("/resume/overview", {"userId": "dev_user_001", "experiences": [EXP], "jobTargets": []}),
     ]
