@@ -164,10 +164,19 @@ def job_fit(job_id: str, req: JobsFitRequest):
     return fit_one(profile, job, _get_scorer())
 
 
-@router.post("/resume/customize", response_model=CustomizeResponse)
-def resume_customize(req: CustomizeRequest) -> CustomizeResponse:
-    # TODO(第 3 週, 成員 B): 依 jobId 取 jdKeywords → 逐條經歷比對 → 證據約束改寫
-    return CustomizeResponse.model_validate(_golden("resume_customize"))
+@router.post("/resume/customize", response_model=CustomizeResponse,
+             responses={404: {"description": "jobId 不存在,統一錯誤格式"}})
+def resume_customize(req: CustomizeRequest):
+    from app.pipeline.customize import customize
+    from app.pipeline.jobs_fit import load_jobs
+    job = next((j for j in load_jobs() if j["jobId"] == req.jobId), None)
+    if job is None:
+        return _error(404, "job_not_found", f"查無職缺 {req.jobId}")
+    try:
+        llm = OpenAICompatibleLLM()      # 生成任務,吃全域預設模型
+    except LLMUnavailable:
+        llm = None                        # 無金鑰 → 確定性輸出(原文+標記)照樣出貨
+    return customize(job, req.experiences, normalizer=_get_normalizer(), llm=llm)
 
 
 @router.post("/resume/overview", response_model=OverviewResponse)

@@ -23,7 +23,7 @@ def test_all_endpoints_return_valid_shape():
         ("/career/recommend", {"userId": "dev_user_001", "query": "我喜歡整理數據", "experiences": [EXP]}),
         ("/jobs/fit-all", {"userId": "dev_user_001", "experiences": [EXP]}),
         (f"/jobs/{_FIRST_JOB_ID}/fit", {"userId": "dev_user_001", "experiences": [EXP]}),
-        ("/resume/customize", {"userId": "dev_user_001", "jobId": "fit_da", "experiences": [EXP]}),
+        (f"/resume/customize", {"userId": "dev_user_001", "jobId": _FIRST_JOB_ID, "experiences": [EXP]}),
         ("/resume/overview", {"userId": "dev_user_001", "experiences": [EXP], "jobTargets": []}),
     ]
     for path, body in calls:

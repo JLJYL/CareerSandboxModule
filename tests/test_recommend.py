@@ -68,3 +68,15 @@ def test_zero_evidence_career_never_ships():
                      llm=None, catalog=CATALOG + [ghost], min_score=0)
     assert "ghost" not in [r.id for r in recs]
     assert recs and recs[0].missingSkills != []      # 出貨的卡都有真差集
+
+
+def test_offtopic_chunks_filtered():
+    """A 標註的民生新聞雜訊(offtopic=true)不得進入推薦流程。"""
+    from app.pipeline.recommend import _usable_chunks
+    noise = RetrievedChunk(score=0.9, entry=KBEntry(
+        id="kb_noise", type="article", title="發票開獎", content="x", skills=[],
+        metadata={"careerId": "pm", "offtopic": True, "sourceId": "s9"}))
+    keep = RetrievedChunk(score=0.8, entry=KBEntry(
+        id="kb_ok", type="article", title="正常文章", content="y", skills=[],
+        metadata={"sourceId": "s1"}))
+    assert [c.entry.id for c in _usable_chunks([noise, keep])] == ["kb_ok"]
