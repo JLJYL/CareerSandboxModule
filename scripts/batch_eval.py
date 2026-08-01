@@ -15,6 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from app.config import settings  # noqa: E402
 from app.pipeline.extraction import ExtractionError, LlmExtractor  # noqa: E402
 from app.providers.llm import LLMUnavailable, OpenAICompatibleLLM  # noqa: E402
 
@@ -85,7 +86,7 @@ def main() -> None:
         sys.exit(f"[X] {args.dir} 沒有任何 .txt 樣本")
 
     try:
-        extractor = LlmExtractor(OpenAICompatibleLLM())
+        extractor = LlmExtractor(OpenAICompatibleLLM(model=settings.llm_model_extract or None))
     except LLMUnavailable as e:
         sys.exit(f"[X] {e}")
 

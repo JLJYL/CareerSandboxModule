@@ -12,7 +12,9 @@ from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from app.config import settings
 from app.pipeline.extraction import ExtractionError, LlmExtractor
+from app.pipeline.normalize import VocabNormalizer
 from app.pipeline.profile import aggregate_display_skills, build_profile
 from app.providers.llm import LLMUnavailable, OpenAICompatibleLLM
 from app.schemas.api import (
@@ -33,10 +35,26 @@ def _golden(name: str) -> dict:
     return json.loads((_GOLDEN / f"{name}.json").read_text(encoding="utf-8"))
 
 
+_NORMALIZER: VocabNormalizer | None = None
+
+
+def _get_normalizer() -> VocabNormalizer:
+    """懶載單例:有 torch+模型 → 三段全開(alias→向量最近鄰→殘留);
+    沒有(CI、乾淨環境)→ alias-only 降級——同一個介面,能力降級不缺席。"""
+    global _NORMALIZER
+    if _NORMALIZER is None:
+        try:
+            from app.providers.embeddings import BgeM3Embedding
+            _NORMALIZER = VocabNormalizer(embedding=BgeM3Embedding())
+        except Exception:
+            _NORMALIZER = VocabNormalizer()
+    return _NORMALIZER
+
+
 def _build_extractor() -> LlmExtractor | None:
     """LLM 有設定 → 真擷取;沒設定(本地無 .env、CI)→ None,端點退 golden。"""
     try:
-        return LlmExtractor(OpenAICompatibleLLM())
+        return LlmExtractor(OpenAICompatibleLLM(model=settings.llm_model_extract or None))
     except LLMUnavailable:
         return None
 
@@ -60,7 +78,8 @@ def master_generate(req: MasterGenerateRequest):
     except ExtractionError as e:
         return _error(502, "extraction_failed", str(e))
 
-    profile = build_profile(req.userId, drafts, normalizer=None)  # W2 起插入 A 的 Normalizer
+    normalizer = _get_normalizer()          # W2:A 的正規化器正式上線
+    profile = build_profile(req.userId, drafts, normalizer=normalizer)
     return MasterGenerateResponse(
         draftExperiences=[
             DraftExperience(
@@ -71,14 +90,39 @@ def master_generate(req: MasterGenerateRequest):
             )
             for i, d in enumerate(drafts, 1)
         ],
-        skills=aggregate_display_skills(profile),
+        skills=aggregate_display_skills(profile, name_of=normalizer.display_name),
     )
+
+
+def _build_reco_deps():
+    """真檢索+真尺(要 torch+模型);建不起來(CI/乾淨機)→ None → 端點退 golden。"""
+    try:
+        from app.pipeline.scorer import WeightedScorer
+        from app.providers.embeddings import BgeM3Embedding
+        from app.retrieval.vector_retriever import VectorRetriever
+        emb = BgeM3Embedding()
+        norm = _get_normalizer()
+        return (VectorRetriever(embedding=emb,
+                                persist_path=Path("data/kb_index.json")),
+                WeightedScorer(norm, embedding=emb), norm)
+    except Exception:
+        return None
 
 
 @router.post("/career/recommend", response_model=CareerRecommendResponse)
 def career_recommend(req: CareerRecommendRequest) -> CareerRecommendResponse:
-    # TODO(第 2 週, 成員 B): retriever.search(req.query) → LLM 生成 → 差集用 Scorer
-    return CareerRecommendResponse.model_validate(_golden("career_recommend"))
+    deps = _build_reco_deps()
+    if deps is None:
+        return CareerRecommendResponse.model_validate(_golden("career_recommend"))
+    retriever, scorer, normalizer = deps
+    try:
+        llm = OpenAICompatibleLLM()          # 生成任務吃全域預設(建議 gpt-4o-mini)
+    except LLMUnavailable:
+        llm = None                            # 沒金鑰 → 純分數排序,C1 照樣出貨
+    from app.pipeline.recommend import recommend
+    recs = recommend(req.query, req.experiences, normalizer=normalizer,
+                     retriever=retriever, scorer=scorer, llm=llm)
+    return CareerRecommendResponse(recommendations=recs)
 
 
 @router.post("/jobs/fit-all", response_model=JobsFitAllResponse)
