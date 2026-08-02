@@ -33,6 +33,15 @@ _EN = {"ai_data_engineer": "AI/Data Engineer", "pm": "Product Planner",
        "hr": "HR Specialist", "uiux_designer": "UI/UX Designer", "it_support": "IT Support"}
 
 
+def market_skeleton(hit_jobs: list[dict], top: int = 8, min_freq: int = 2) -> list[str]:
+    """市場蒸餾骨架:該職涯職缺的 requiredSkills 頻率統計,取出現≥min_freq 的前 top 個;
+    全不足門檻則退取前 5(小樣本職涯)。零職缺回空,交由零證據閘門判生死。"""
+    from collections import Counter
+    freq = Counter(s for j in hit_jobs for s in (j.get("requiredSkills") or []))
+    strong = [s for s, n in freq.most_common(top) if n >= min_freq]
+    return strong or [s for s, _ in freq.most_common(5)]
+
+
 def _subtitle_en(cid: str) -> str:
     if cid in _EN:
         return _EN[cid]
@@ -70,10 +79,8 @@ def main() -> None:
     for c in tax:
         cid = c["careerId"]
         skills = sorted(skills_by.get(cid, set()))
+        skeleton_src = "kb" if skills else ""
         n_art = art_count.get(cid, 0)
-        if not skills and n_art == 0:
-            skipped.append((cid, "零證據"))
-            continue                     # 無技能骨架也無文章 → 不入列(A 補證據即自動入列)
         cat = CATEGORY_MAP.get(cid, "其他")
         if args.mode == "four" and cat not in FOUR:
             skipped.append((cid, f"四類外({cat})"))
@@ -81,6 +88,12 @@ def main() -> None:
         pat = "|".join(map(re.escape, c["aliases"] + [c["name"]]))
         hit = [j for j in jobs if re.search(pat, j.get("title", "") +
                (j.get("jobCategory") or [""])[0])]
+        if not skills:
+            skills = market_skeleton(hit)   # KB 無骨架 → 市場蒸餾:該職涯職缺的高頻技能
+            skeleton_src = "market" if skills else ""
+        if not skills and n_art == 0:
+            skipped.append((cid, "零證據"))
+            continue                     # 市場也蒸不出、又無文章 → 不入列
         sal = sorted(j["salaryLow"] for j in hit if j.get("salaryLow"))
         catalog.append({
             "id": cid, "title": c["name"], "subtitleEn": _subtitle_en(cid),
@@ -89,7 +102,7 @@ def main() -> None:
                        if len(sal) >= 4 else "依市場"),
             "openings": f"{len(hit):,}" if hit else "—",
             "requiredSkills": skills,
-            "evidence": {"jobSkillEntries": len(skills) > 0, "taggedArticles": n_art},
+            "evidence": {"skeletonSource": skeleton_src, "taggedArticles": n_art},
         })
     Path(args.out).write_text(json.dumps(catalog, ensure_ascii=False, indent=2),
                               encoding="utf-8")

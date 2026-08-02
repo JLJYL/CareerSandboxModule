@@ -17,7 +17,7 @@
 | 1 | 欄位名 camelCase，逐字鏡射 Kotlin data class | 前端 org.json 按名取值；Real service 越薄越好 |
 | 2 | List 永不為 null，空值回 `[]` | Kotlin 宣告非空 List，null 會 crash |
 | 3 | `matchScore` 為 0–100 整數 | 前端現值 65–92 全為 Int |
-| 4 | CareerRec `category` ∈ {數據, 產品, 設計, 學術}；「全部」僅為 UI 篩選器 | CareerExplorationScreen.kt L83–141 |
+| 4 | CareerRec `category`：原四值凍結；**【2026-08-02 變更】A 定案擴至全市場,改為開放字串**,值域由職涯定義檔分類對照治理;新桶名(工程/行銷/人資等)為暫定草案,定名由 A+怡君確認;前端 category→icon 對照需同步擴充或加預設圖示(已通知) | CareerExplorationScreen.kt L83–141 |
 | 5 | 經歷 `category` ∈ {社團, 工作, 競賽, 學業}（輸出嚴格；輸入收 str） | MockData.kt L56–67 |
 | 6 | **`icon` 不進 API**（ImageVector 不可序列化）；前端以 category→icon 對照表本地補 | CareerRec 定義；→ 給怡君 D11 |
 | 7 | id 命名照前端現存風格：career 純 slug（`data_analyst`）、job `fit_*`、KB `kb_*`、AI 草稿經歷 `e_ai_{n}` | 各檔現值 |

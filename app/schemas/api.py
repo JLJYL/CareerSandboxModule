@@ -14,7 +14,9 @@ from pydantic import BaseModel, Field
 # ---------------------------------------------------------------------------
 
 # CareerExplorationScreen.kt 篩選列；「全部」是 UI 篩選器專用，永不出現在資料中
-CareerCategory = Literal["數據", "產品", "設計", "學術"]
+# 【2026-08-02 合約變更】A 定案推薦範圍擴至全市場:四值 Literal 改為開放字串。
+# 值域由職涯定義檔的分類對照(tools/build_careers.py CATEGORY_MAP)治理,詳 CONTRACTS.md 第 4 條註記。
+CareerCategory = str
 
 # MockData.kt 母版經歷使用的四類
 ExperienceCategory = Literal["社團", "工作", "競賽", "學業"]

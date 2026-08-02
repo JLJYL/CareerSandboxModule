@@ -80,3 +80,13 @@ def test_offtopic_chunks_filtered():
         id="kb_ok", type="article", title="正常文章", content="y", skills=[],
         metadata={"sourceId": "s1"}))
     assert [c.entry.id for c in _usable_chunks([noise, keep])] == ["kb_ok"]
+
+
+def test_career_category_accepts_market_buckets():
+    """合約變更回歸鎖:market 定案後 category 為開放字串,新桶名(人資等)不得再炸 500。"""
+    from app.schemas.api import CareerRecOut
+    card = CareerRecOut(id="hr", title="人力資源", subtitleEn="HR Specialist",
+                        shortSubtitle="人資 · 33-40k", salary="33-40k", openings="1,022",
+                        matchScore=41, missingSkills=[], category="人資",
+                        isAcademic=False, academicNote="")
+    assert card.category == "人資"
