@@ -29,11 +29,35 @@ TYPE_TO_CATEGORY = {
 }
 
 # 型錄職涯 → 目標職業關鍵詞(開放詞庫:判定 targetOccupation 是否「這格蓋得到」)
-TARGET_KEYS = {
-    "data_analyst": ("資料分析", "數據分析"),
-    "data_engineer": ("資料工程", "數據工程"),
-    "pm": ("產品經理", "產品企劃", "PM"),
-}
+# 涵蓋判定 v2:目標職業 → A 的 30 職涯定義(includes 精確→aliases/name 包含),
+# 「可及」= 對得到定義 且 該職涯已在型錄(有證據可推薦)。兩層分開回報。
+import json as _json
+from pathlib import Path as _P
+_TAX = _json.load(open(_P(__file__).resolve().parents[1] /
+                       "fixtures/careers/careers.v1.json", encoding="utf-8"))["careers"]
+
+
+def target_to_career(target: str) -> str | None:
+    """目標職業 → 職涯定義的 careerId(與型錄無關的第一層對應)。"""
+    for c in _TAX:
+        if target in c.get("includes", []):
+            return c["careerId"]
+    for c in _TAX:
+        if any(a.lower() in target.lower() for a in c["aliases"]) or c["name"] in target:
+            return c["careerId"]
+    return None
+
+
+def _catalog_ids() -> set[str]:
+    from app.pipeline.recommend import load_catalog
+    return {c["id"] for c in load_catalog()}
+
+
+def target_reachable(target: str, catalog_ids: set[str] | None = None) -> str | None:
+    """第二層:對到定義且在型錄內才算可及(可被有據推薦)。"""
+    cid = target_to_career(target)
+    ids = catalog_ids if catalog_ids is not None else _catalog_ids()
+    return cid if cid in ids else None
 
 
 def persona_to_request(p: dict):
@@ -56,17 +80,12 @@ def persona_to_request(p: dict):
     return query, exps
 
 
-def target_reachable(target: str) -> str | None:
-    """這個目標職業,型錄裡哪一格理論上蓋得到?蓋不到回 None(天花板之外)。"""
-    for cid, keys in TARGET_KEYS.items():
-        if any(k in target for k in keys):
-            return cid
-    return None
 
 
-def is_hit(rec_ids: list[str], target: str, top: int = 3) -> bool:
-    cid = target_reachable(target)
-    return cid is not None and cid in rec_ids[:top]
+def is_hit(recommended_ids, target: str) -> bool:
+    """前三命中:目標對到的職涯 id 出現在推薦清單裡。"""
+    cid = target_to_career(target)
+    return cid is not None and cid in recommended_ids
 
 
 def main() -> None:
