@@ -15,6 +15,14 @@ from app.schemas.api import CustomizedItemOut, CustomizeRequest, CustomizeRespon
 
 _HIGHLIGHT_MIN = 2          # 命中 ≥2 個關鍵字才標強化(依 golden 範例校準)
 _NUM_RE = re.compile(r"\d+(?:\.\d+)?")
+# 評價詞防線:prompt 規則與反例示範連敗四輪後降到機械層——原文沒有就是不准寫。
+_HYPE_WORDS = ("成功", "精通", "出色", "高效", "優異", "大幅", "卓越", "完美")
+
+
+def _zh_period(t: str) -> str:
+    """中文條目句尾的半形句點換全形——prompt 規則對此三案兩搖擺,降為機械正規化。
+    只在句尾前一字是中日韓字元/數字/%/括號時替換,純英文句子不動。"""
+    return re.sub(r"(?<=[\u4e00-\u9fff0-9%)）])\.(\s*)$", r"。\1", t.strip())
 
 
 def _canon_id(normalizer, text: str) -> str | None:
@@ -61,8 +69,13 @@ def customize(job: dict, req_experiences: list[ExperienceIn], *, normalizer,
                    if kw in blob or (kw_ids[kw] and kw_ids[kw] in exp_ids)]
         items.append({"title": exp.title, "description": exp.description,
                       "tags": exp.tags, "timeRange": exp.timeRange,
-                      "matched": matched,
-                      "highlighted": len(matched) >= _HIGHLIGHT_MIN})
+                      "matched": matched, "highlighted": False})
+    # 強化判定:絕對門檻(≥2)為主;全員不足門檻時啟動相對救援——
+    # 命中數最高且至少 1 的條目仍標強化(對此職缺最相關的牌不該被壓縮;全 0 則維持全弱化)
+    max_hit = max((len(it["matched"]) for it in items), default=0)
+    for it in items:
+        n = len(it["matched"])
+        it["highlighted"] = n >= _HIGHLIGHT_MIN or (0 < n == max_hit)
 
     texts = [it["description"] or it["title"] for it in items]   # 預設:原文出貨
     if llm is not None:
@@ -70,7 +83,7 @@ def customize(job: dict, req_experiences: list[ExperienceIn], *, normalizer,
 
     return CustomizeResponse(
         jdKeywords=jd_keywords, coveredKeywords=covered,
-        items=[CustomizedItemOut(text=sanitize_display_text(t),
+        items=[CustomizedItemOut(text=sanitize_display_text(_zh_period(t)),
                                  matchedKeywords=it["matched"],
                                  highlighted=it["highlighted"])
                for t, it in zip(texts, items)])
@@ -89,6 +102,9 @@ def _violations(cands: list[str], items: list[dict]) -> list[str]:
         ghost = [n for n in _NUM_RE.findall(t) if n not in _NUM_RE.findall(src)]
         if ghost:
             out.append(f"第 {i} 條出現原文沒有的數字 {ghost}")
+        hype = [w for w in _HYPE_WORDS if w in t and w not in src]
+        if hype:
+            out.append(f"第 {i} 條出現原文沒有的評價詞 {hype}")
     return out
 
 

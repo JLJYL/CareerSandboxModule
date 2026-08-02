@@ -51,3 +51,35 @@ def test_fabricated_number_falls_back_to_original():
     r = customize(JOB, EXPS, normalizer=NORM, llm=SeqLLM([bad, bad]))
     assert r.items[0].text == EXPS[0].description               # 違規條退回原文
     assert "1200" in r.items[1].text                            # 合規條保留改寫
+
+
+def test_single_best_match_rescued_as_highlighted():
+    """相對救援條款:全員不足絕對門檻時,命中最高且至少 1 的條目仍標強化。"""
+    job = {"jobId": "fit_y", "title": "社群企劃",
+           "requiredSkills": ["品牌行銷管理", "文案撰寫", "Adobe Photoshop"], "jd": ""}
+    exps = [ExperienceIn(id="e1", title="社團社群", category="社團", timeRange="",
+                         description="經營 IG", tags=["文案撰寫"]),
+            ExperienceIn(id="e2", title="資料課", category="學業", timeRange="",
+                         description="", tags=["SQL"])]
+    r = customize(job, exps, normalizer=NORM, llm=None)
+    assert r.items[0].highlighted            # 唯一有命中者被救援
+    assert not r.items[1].highlighted        # 零命中維持弱化
+
+
+def test_embellishment_word_falls_back_to_original():
+    """評價詞防線:原文沒有的「成功/精通」等詞,重試仍違規則該條退回原文。"""
+    bad = json.dumps({"items": [
+        {"text": "成功以 SQL 產出週報,支援業務。"},          # 「成功」原文沒有
+        {"text": "經營社團 IG 累積 1200 追蹤。"}]}, ensure_ascii=False)
+    r = customize(JOB, EXPS, normalizer=NORM, llm=SeqLLM([bad, bad]))
+    assert r.items[0].text == EXPS[0].description           # 違規條退回原文
+    assert "1200" in r.items[1].text                        # 合規條保留改寫
+
+
+def test_halfwidth_period_normalized_to_fullwidth():
+    """中文句尾半形句點自動轉全形;英文結尾不動。"""
+    good = json.dumps({"items": [
+        {"text": "以 SQL 與 Excel 產出週報,支援業務決策."},
+        {"text": "經營社團 IG 累積 1200 追蹤."}]}, ensure_ascii=False)
+    r = customize(JOB, EXPS, normalizer=NORM, llm=FakeLLM(good))
+    assert r.items[0].text.endswith("。") and r.items[1].text.endswith("。")
