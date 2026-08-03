@@ -777,7 +777,9 @@
   "skill_id": "skm:2f84417a9e",
   "name_zh": "CSS",
   "name_en": "CSS",
-  "aliases": [],
+  "aliases": [
+   "CSS3"
+  ],
   "ucan_code": "",
   "onet_code": ""
  },
@@ -812,7 +814,9 @@
   "skill_id": "skm:421f614d18",
   "name_zh": "Illustrator",
   "name_en": "Illustrator",
-  "aliases": [],
+  "aliases": [
+   "Adobe Illustrator"
+  ],
   "ucan_code": "",
   "onet_code": ""
  },
@@ -838,7 +842,9 @@
   "skill_id": "skm:46f1a0bd55",
   "name_zh": "Git",
   "name_en": "Git",
-  "aliases": [],
+  "aliases": [
+   "GitHub"
+  ],
   "ucan_code": "",
   "onet_code": ""
  },
@@ -866,7 +872,9 @@
   "skill_id": "skm:58101fced5",
   "name_zh": "Adobe Photoshop",
   "name_en": "Adobe Photoshop",
-  "aliases": [],
+  "aliases": [
+   "Photoshop"
+  ],
   "ucan_code": "",
   "onet_code": ""
  },
@@ -983,7 +991,9 @@
   "skill_id": "skm:950a39b6c2",
   "name_zh": "HTML",
   "name_en": "HTML",
-  "aliases": [],
+  "aliases": [
+   "HTML5"
+  ],
   "ucan_code": "",
   "onet_code": ""
  },
