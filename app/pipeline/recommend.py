@@ -72,7 +72,8 @@ def _llm_rank(llm, query, skill_names, candidates) -> tuple[list[str], dict]:
 
 def recommend(query: str, experiences: list[ExperienceIn], *, normalizer, retriever,
               scorer, llm=None, catalog: list[dict] | None = None,
-              top_n: int = 3, min_score: int = 30) -> list[CareerRecOut]:
+              top_n: int = 3, min_score: int = 30,
+              debug: dict | None = None) -> list[CareerRecOut]:
     catalog = catalog if catalog is not None else load_catalog()
     profile = profile_from_experiences("dev_user_001", experiences, normalizer)
     skill_names = [normalizer.display_name(s.skill_id) for s in profile.skills] \
@@ -101,6 +102,7 @@ def recommend(query: str, experiences: list[ExperienceIn], *, normalizer, retrie
             required_skills=c.get("requiredSkills", []),
             jd_text=" ".join(s["text"] for s in snippets.get(c["id"], [])[:2])))
         candidates.append({**c, "matchScore": fit.match_score,
+                           "covered": fit.covered_skills,
                            "missing": fit.missing_skills,
                            "snippets": snippets.get(c["id"], [])})
 
@@ -124,6 +126,11 @@ def recommend(query: str, experiences: list[ExperienceIn], *, normalizer, retrie
                 notes = {k: str(v) for k, v in (data.get("notes") or {}).items()}
             except Exception:
                 order_ids = None                    # LLM 罷工 → 純分數排序照樣出貨
+
+    if debug is not None:                       # 法醫出口:名單與排序官判決,供評測驗屍
+        debug["slate"] = sorted(((c["id"], c["matchScore"]) for c in candidates),
+                                key=lambda x: -x[1])
+        debug["order"] = list(order_ids or [])
 
     by_id = {c["id"]: c for c in candidates}
     if order_ids:

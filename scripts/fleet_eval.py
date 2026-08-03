@@ -94,6 +94,8 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--no-llm", action="store_true")
     ap.add_argument("--top", type=int, default=3)
+    ap.add_argument("--dump-misses", type=int, default=0,
+                    help="失手案法醫模式:印出前 N 個失手的名單/分數/排序官判決")
     args = ap.parse_args()
 
     from app.pipeline.normalize import VocabNormalizer
@@ -127,7 +129,8 @@ def main() -> None:
     for i, p in enumerate(fleet, 1):
         query, exps = persona_to_request(p)
         target = p["career"]["targetOccupation"]
-        out = recommend(query, exps, normalizer=norm, retriever=retriever,
+        sink: dict = {}
+        out = recommend(query, exps, normalizer=norm, retriever=retriever, debug=sink,
                         scorer=scorer, llm=llm)
         ids = [r.id for r in out]
         if not ids:
@@ -139,8 +142,8 @@ def main() -> None:
             reachable += 1
             if cid in ids[: args.top]:
                 hits += 1
-            elif len(miss_samples) < 5:
-                miss_samples.append((target, cid, ids))
+            elif len(miss_samples) < max(5, args.dump_misses):
+                miss_samples.append((target, cid, ids, sink))
         if i % 10 == 0:
             print(f"  …{i}/{len(fleet)}")
 
@@ -154,8 +157,21 @@ def main() -> None:
     print(f"top-1 分布:{dict(top1)}")
     if miss_samples:
         print("射程內失手抽樣:")
-        for t, cid, ids in miss_samples:
-            print(f"  目標「{t}」該中 {cid},實出 {ids}")
+        for tgt, cid, ids, sink in miss_samples[:5]:
+            print(f"  目標「{tgt}」該中 {cid},實出 {ids}")
+    if args.dump_misses:
+        print("\n── 失手驗屍(前 %d 案) ──" % min(args.dump_misses, len(miss_samples)))
+        for tgt, cid, ids, sink in miss_samples[: args.dump_misses]:
+            slate = sink.get("slate", [])
+            pos = next((i + 1 for i, (sid, _) in enumerate(slate) if sid == cid), None)
+            sc = next((s for sid, s in slate if sid == cid), None)
+            print(f"\n目標「{tgt}」該中 {cid}")
+            if pos is None:
+                print("  ✗ 正確答案不在名單裡——被 min_score 門檻切除,排序官沒看過這張牌")
+            else:
+                print(f"  ✓ 在名單第 {pos}/{len(slate)} 位(分數 {sc}),排序官沒選它")
+            print(f"  名單前5(分數序):{slate[:5]}")
+            print(f"  排序官判決前5:{sink.get('order', [])[:5]}")
     print("=" * 56)
     print("判讀:天花板低 → 覆蓋問題(A 的 careerId 戰場);得分低 → 排序問題(B 的戰場)。")
 

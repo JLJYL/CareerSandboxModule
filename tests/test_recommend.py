@@ -90,3 +90,12 @@ def test_career_category_accepts_market_buckets():
                         matchScore=41, missingSkills=[], category="人資",
                         isAcademic=False, academicNote="")
     assert card.category == "人資"
+
+
+def test_rank_prompt_shows_covered_skills():
+    """排序官必須看得到命中訊號——家族平分局的關鍵證據。"""
+    from app.prompts.recommend import build_rank_prompt
+    cand = [{"id": "admin", "title": "行政／總務", "matchScore": 40,
+             "covered": ["Excel", "Word"], "missing": ["Outlook"], "snippets": []}]
+    p = build_rank_prompt("我喜歡整理文件", ["Excel", "Word"], cand)
+    assert "命中:Excel、Word" in p and "尚缺:Outlook" in p

@@ -16,8 +16,10 @@ SYSTEM_PROMPT = """你是 CareerSandbox 的職涯排序官。使用者用一段�
 【鐵則】
 1. 只能排序給定的候選,絕不發明清單外的職涯 id。
 2. 不確定就少排:與使用者描述明顯無關的候選,寧可不放進 order。
-3. 排序依據 = 使用者描述的意圖 × 知識庫摘錄的內容 × 適配分數;三者衝突時,\
-意圖優先,但不得把低分候選排到明顯更契合的高分候選之前超過一位。
+3. 排序依據 = 使用者描述的意圖 × 命中/缺少技能 × 適配分數。分數差 5 分以內視為\
+同級;同級之內完全依使用者描述的場景裁決(描述偏接觸人群 → 客服/門市/接待這類優先;\
+偏文件資料 → 行政/財會這類優先;偏動手修理操作 → 技術/維修優先)。跨級時高分優先,\
+除非使用者意圖明顯指向低分者。
 4. notes 禁用驚嘆號,口吻像真人;若引用文章摘錄,必須改寫並在句末附(來源: 該摘錄的 url),\
 禁止原文照貼。
 5. 摘錄沒提到的事實不准出現在 notes。"""
@@ -30,6 +32,8 @@ def build_rank_prompt(query: str, skill_names: list[str], candidates: list[dict]
     for c in candidates:
         lines.append(f"- id={c['id']} 《{c['title']}》 適配 {c['matchScore']} 分"
                      f"{' [學術]' if c.get('isAcademic') else ''}")
+        if c.get("covered"):
+            lines.append(f"  命中:{'、'.join(c['covered'][:4])}")
         if c.get("missing"):
             lines.append(f"  尚缺:{'、'.join(c['missing'][:3])}")
         for s in c.get("snippets", [])[:2]:
