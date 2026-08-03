@@ -5,15 +5,15 @@
 alias 未命中的字串都帶著它的最佳相似度落進殘留區，然後：
 
   1. 三段分流統計（alias 命中率／各門檻下的自動採納率／殘留率）
-  2. 門檻掃描表 0.50–0.76：每個候選門檻下自動採納 vs 殘留的數量
-  3. 關鍵帶樣本（sim 0.45–0.76）：raw → 建議標準名，人工掃過就知道刀該切哪
+  2. 門檻掃描表 0.50–0.90：每個候選門檻下自動採納 vs 殘留的數量
+  3. 關鍵帶樣本（sim 0.45–0.90）：raw → 建議標準名，人工掃過就知道刀該切哪
   4. 低相似高頻殘留 top 20：市場常見卻對不上詞彙表的字串＝新詞條候選
 
 輸出 data/calibration_report.md（data/ 已 gitignore；要留檔自行複製）。
 
 用法：
   python tools/calibrate_normalizer.py --jobs <path>/jobs_all.jsonl --real
-  （--fake 只驗流程，數字無語意）
+（不帶 --real 時只驗流程，數字無語意）
 """
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ sys.path.insert(0, str(REPO))
 from app.pipeline.normalize import VocabNormalizer  # noqa: E402
 from app.providers.embeddings import FakeEmbedding  # noqa: E402
 
-SWEEP = [round(0.50 + i * 0.02, 2) for i in range(14)]  # 0.50–0.76
+SWEEP = [round(0.50 + i * 0.02, 2) for i in range(21)] # 0.50–0.90
 
 
 def main():
@@ -81,10 +81,10 @@ def main():
         lines.append(f"| {th:.2f} | {acc} | {len(cands) - acc} | "
                      f"{acc / max(1, len(cands)):.0%} |")
 
-    lines += ["", "## 關鍵帶樣本（sim 0.45–0.76，由高到低）",
+    lines += ["", "## 關鍵帶樣本（sim 0.45–0.90，由高到低）",
               "", "人工判讀：往下讀到「開始出現錯併」的那一列，門檻就切在它上面。",
               "", "| sim | 原始字串（×職缺數） | → 建議標準名 |", "|---|---|---|"]
-    band = sorted((c for c in cands if 0.45 <= c["sim"] < 0.76),
+    band = sorted((c for c in cands if 0.45 <= c["sim"] < 0.90),
                   key=lambda c: -c["sim"])[:90]
     for c in band:
         lines.append(f"| {c['sim']:.3f} | {c['raw']}（×{freq[c['raw']]}） | "

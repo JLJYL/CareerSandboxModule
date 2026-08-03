@@ -182,6 +182,27 @@
    "icap"
   ]
  },
+ "skm:f3eea55526": {
+  "layers": [
+   "L0_curated"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": []
+ },
+ "skm:f1dda22f6c": {
+  "layers": [
+   "L0_curated"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": []
+ },
+ "skm:ac2801a3ff": {
+  "layers": [
+   "L0_curated"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": []
+ },
  "sk:5b7a81bb83": {
   "layers": [
    "L1_onet"
@@ -1341,49 +1362,5 @@
    "UX設計師": 60
   },
   "tech_industry_freq": 4
- },
- "skm:39a15b5c7d": {
-  "layers": [
-   "L3_market"
-  ],
-  "zhang_matched": false,
-  "zhang_sources": [],
-  "market_score": 119,
-  "occ_pcts": {
-   "平面設計／美編": 24,
-   "網頁設計師": 25,
-   "商業設計": 50,
-   "UX設計師": 20
-  },
-  "tech_industry_freq": 2
- },
- "skm:6f2ab963b5": {
-  "layers": [
-   "L3_market"
-  ],
-  "zhang_matched": false,
-  "zhang_sources": [],
-  "market_score": 118,
-  "occ_pcts": {
-   "前端工程師": 22,
-   "UI設計師": 25,
-   "Internet程式設計師": 38,
-   "全端工程師": 33
-  },
-  "tech_industry_freq": 7
- },
- "skm:20aa959514": {
-  "layers": [
-   "L3_market"
-  ],
-  "zhang_matched": false,
-  "zhang_sources": [],
-  "market_score": 114,
-  "occ_pcts": {
-   "產品企劃": 25,
-   "產品管理師": 29,
-   "產品經理": 60
-  },
-  "tech_industry_freq": 3
  }
 }

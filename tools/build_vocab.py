@@ -119,6 +119,12 @@ SEEDS = [
     dict(name_zh="React", name_en="React", aliases=["ReactJS", "React.js"]),
     dict(name_zh="機器學習", name_en="Machine Learning",
          aliases=["AI", "ML", "人工智慧", "深度學習", "LLM"]),
+    dict(name_zh="ERP 系統", name_en="ERP Systems",
+         aliases=["鼎新", "正航"]),
+    dict(name_zh="Claude", name_en="Claude",
+         aliases=["Anthropic Claude"]),
+    dict(name_zh="Zeplin", name_en="Zeplin",
+         aliases=[]),
 ]
 
 # MockData 四段經歷的 tags（去重後 9 個；驗收：至少 10/12 個 tag 實例對得上）

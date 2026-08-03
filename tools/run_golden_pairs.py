@@ -64,8 +64,16 @@ def main():
     # 黃金檔自身健檢：每個 required skill 必須恰好出現在 covered ∪ missing 其一
     for c in cases:
         req = set(jds[c["jobId"]]["requiredSkills"])
-        exp = set(c["expected"]["covered"]) | set(c["expected"]["missing"])
-        assert req == exp, f"{c['caseId']} expected 未涵蓋全部 requiredSkills：{req ^ exp}"
+        covered = set(c["expected"]["covered"])
+        missing = set(c["expected"]["missing"])
+        overlap = covered & missing
+        assert not overlap, (
+            f"{c['caseId']} covered/missing 重複：{overlap}"
+        )
+        exp = covered | missing
+        assert req == exp, (
+            f"{c['caseId']} expected 未涵蓋全部 requiredSkills：{req ^ exp}"
+        )
 
     embedding = None
     if args.real:
