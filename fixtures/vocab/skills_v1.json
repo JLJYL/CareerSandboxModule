@@ -750,14 +750,6 @@
   "onet_code": ""
  },
  {
-  "skill_id": "skm:20aa959514",
-  "name_zh": "產品營運",
-  "name_en": "",
-  "aliases": [],
-  "ucan_code": "",
-  "onet_code": ""
- },
- {
   "skill_id": "skm:2151c363c5",
   "name_zh": "行政事務處理",
   "name_en": "",
@@ -777,15 +769,9 @@
   "skill_id": "skm:2f84417a9e",
   "name_zh": "CSS",
   "name_en": "CSS",
-  "aliases": [],
-  "ucan_code": "",
-  "onet_code": ""
- },
- {
-  "skill_id": "skm:39a15b5c7d",
-  "name_zh": "廣告設計概念",
-  "name_en": "",
-  "aliases": [],
+  "aliases": [
+   "CSS3"
+  ],
   "ucan_code": "",
   "onet_code": ""
  },
@@ -812,7 +798,9 @@
   "skill_id": "skm:421f614d18",
   "name_zh": "Illustrator",
   "name_en": "Illustrator",
-  "aliases": [],
+  "aliases": [
+   "Adobe Illustrator"
+  ],
   "ucan_code": "",
   "onet_code": ""
  },
@@ -838,7 +826,9 @@
   "skill_id": "skm:46f1a0bd55",
   "name_zh": "Git",
   "name_en": "Git",
-  "aliases": [],
+  "aliases": [
+   "GitHub"
+  ],
   "ucan_code": "",
   "onet_code": ""
  },
@@ -866,7 +856,9 @@
   "skill_id": "skm:58101fced5",
   "name_zh": "Adobe Photoshop",
   "name_en": "Adobe Photoshop",
-  "aliases": [],
+  "aliases": [
+   "Photoshop"
+  ],
   "ucan_code": "",
   "onet_code": ""
  },
@@ -910,14 +902,6 @@
    "ReactJS",
    "React.js"
   ],
-  "ucan_code": "",
-  "onet_code": ""
- },
- {
-  "skill_id": "skm:6f2ab963b5",
-  "name_zh": "jQuery",
-  "name_en": "jQuery",
-  "aliases": [],
   "ucan_code": "",
   "onet_code": ""
  },
@@ -983,7 +967,9 @@
   "skill_id": "skm:950a39b6c2",
   "name_zh": "HTML",
   "name_en": "HTML",
-  "aliases": [],
+  "aliases": [
+   "HTML5"
+  ],
   "ucan_code": "",
   "onet_code": ""
  },
@@ -999,6 +985,14 @@
   "skill_id": "skm:a05ae9d020",
   "name_zh": "使用者介面設計",
   "name_en": "",
+  "aliases": [],
+  "ucan_code": "",
+  "onet_code": ""
+ },
+ {
+  "skill_id": "skm:ac2801a3ff",
+  "name_zh": "Zeplin",
+  "name_en": "Zeplin",
   "aliases": [],
   "ucan_code": "",
   "onet_code": ""
@@ -1090,6 +1084,27 @@
   "name_zh": "軟體工程系統開發",
   "name_en": "",
   "aliases": [],
+  "ucan_code": "",
+  "onet_code": ""
+ },
+ {
+  "skill_id": "skm:f1dda22f6c",
+  "name_zh": "Claude",
+  "name_en": "Claude",
+  "aliases": [
+   "Anthropic Claude"
+  ],
+  "ucan_code": "",
+  "onet_code": ""
+ },
+ {
+  "skill_id": "skm:f3eea55526",
+  "name_zh": "ERP 系統",
+  "name_en": "ERP Systems",
+  "aliases": [
+   "鼎新",
+   "正航"
+  ],
   "ucan_code": "",
   "onet_code": ""
  },

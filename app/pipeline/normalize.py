@@ -1,7 +1,7 @@
 """職能標籤正規化(成員 A,W2)。實作 Normalizer Protocol,三段式:
   1. alias 精確比對(app/pipeline/vocab.py 的索引,W1 已就位)
   2. embedding 最近鄰:對詞彙表所有表面形(名稱+別名,約 500 個)找餘弦最近鄰,
-     門檻以上採納、以下進殘留區。門檻預設 0.62,需在真 bge-m3 上以殘留樣本校準。
+     門檻以上採納、以下進殘留區。門檻預設 0.88,需在真 bge-m3 上以殘留樣本校準。
   3. 殘留區 = LLM 批次覆核 hook:B 週期性拉 residuals() 做覆核,
      確認的對應補進詞彙表 aliases(改產生器常數重跑),殘留隨版本收斂。
 """
@@ -23,7 +23,7 @@ def cosine(a: list[float], b: list[float]) -> float:
 
 class VocabNormalizer:
     def __init__(self, embedding: EmbeddingProvider | None = None,
-                 vocab_path: Path = VOCAB_PATH, threshold: float = 0.62):
+                 vocab_path: Path = VOCAB_PATH, threshold: float = 0.88):
         self._vocab = load_vocabulary(vocab_path)
         self._alias = alias_index(vocab_path)
         self._by_id = {s.skill_id: s for s in self._vocab}
