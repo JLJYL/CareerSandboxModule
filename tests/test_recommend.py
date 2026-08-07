@@ -80,3 +80,22 @@ def test_offtopic_chunks_filtered():
         id="kb_ok", type="article", title="正常文章", content="y", skills=[],
         metadata={"sourceId": "s1"}))
     assert [c.entry.id for c in _usable_chunks([noise, keep])] == ["kb_ok"]
+
+
+def test_career_category_accepts_market_buckets():
+    """合約變更回歸鎖:market 定案後 category 為開放字串,新桶名(人資等)不得再炸 500。"""
+    from app.schemas.api import CareerRecOut
+    card = CareerRecOut(id="hr", title="人力資源", subtitleEn="HR Specialist",
+                        shortSubtitle="人資 · 33-40k", salary="33-40k", openings="1,022",
+                        matchScore=41, missingSkills=[], category="人資",
+                        isAcademic=False, academicNote="")
+    assert card.category == "人資"
+
+
+def test_rank_prompt_shows_covered_skills():
+    """排序官必須看得到命中訊號——家族平分局的關鍵證據。"""
+    from app.prompts.recommend import build_rank_prompt
+    cand = [{"id": "admin", "title": "行政／總務", "matchScore": 40,
+             "covered": ["Excel", "Word"], "missing": ["Outlook"], "snippets": []}]
+    p = build_rank_prompt("我喜歡整理文件", ["Excel", "Word"], cand)
+    assert "命中:Excel、Word" in p and "尚缺:Outlook" in p

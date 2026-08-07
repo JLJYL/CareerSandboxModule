@@ -26,7 +26,10 @@ def test_persona_to_request_shape():
 
 
 def test_target_reachability_and_hit():
-    assert fleet.target_reachable("資料分析師") == "data_analyst"   # 射程內
-    assert fleet.target_reachable("幼教老師") is None               # 型錄外,誠實認蓋不到
-    assert fleet.is_hit(["pm", "data_analyst"], "資料分析師")        # 前三命中
+    ids = {"data_analyst", "pm"}                                    # 測試自帶型錄,環境無關
+    assert fleet.target_to_career("資料分析師") == "data_analyst"    # 第一層:對到定義
+    assert fleet.target_reachable("資料分析師", ids) == "data_analyst"  # 第二層:且在型錄
+    assert fleet.target_to_career("調酒師／吧台人員") is not None    # 定義蓋得到全市場
+    assert fleet.target_reachable("調酒師／吧台人員", ids) is None   # 但不在型錄=不可及
+    assert fleet.is_hit(["pm", "data_analyst"], "資料分析師")
     assert not fleet.is_hit(["pm"], "資料分析師")
