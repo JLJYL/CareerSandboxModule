@@ -1,0 +1,417 @@
+{
+  "version": "golden_pairs.v1",
+  "note": "黃金測試集:5 履歷×3 JD=15 格。expected 由 A+B 人工覆核填寫(填完把 verified 改 true)。用途:校準 0.62 相似度門檻/0.65-0.35 權重/0.6 折扣。素材出處:persona_150+jobs_v1,零生成內容。 已於 2026-08-02 由 A+B 覆核定案:12 格字面判定+3 格裁決(見各 notes);不引入 partial,二值制。",
+  "resumes": [
+    {
+      "resumeId": "r_resume-011",
+      "personaId": "resume-011",
+      "profileNote": "純辦公",
+      "experiences": [
+        {
+          "id": "e1",
+          "title": "海外服務學習團",
+          "category": "社團",
+          "timeRange": "2023.07",
+          "description": "海外服務學習團",
+          "tags": [
+            "Excel"
+          ]
+        }
+      ]
+    },
+    {
+      "resumeId": "r_resume-002",
+      "personaId": "resume-002",
+      "profileNote": "含數據",
+      "experiences": [
+        {
+          "id": "e1",
+          "title": "市集活動",
+          "category": "社團",
+          "timeRange": "2024.07",
+          "description": "市集活動",
+          "tags": [
+            "Excel",
+            "Word",
+            "會計核算和帳務",
+            "會計或審計",
+            "Outlook",
+            "財務報表製作",
+            "所得稅結算申報",
+            "資料分析"
+          ]
+        }
+      ]
+    },
+    {
+      "resumeId": "r_resume-001",
+      "personaId": "resume-001",
+      "profileNote": "含行銷",
+      "experiences": [
+        {
+          "id": "e1",
+          "title": "海外服務學習團",
+          "category": "社團",
+          "timeRange": "2025.07",
+          "description": "海外服務學習團",
+          "tags": [
+            "Word",
+            "業績管理",
+            "文案撰寫"
+          ]
+        }
+      ]
+    },
+    {
+      "resumeId": "r_resume-006",
+      "personaId": "resume-006",
+      "profileNote": "大混合(≥6技能)",
+      "experiences": [
+        {
+          "id": "e1",
+          "title": "主要經歷",
+          "category": "工作",
+          "timeRange": "",
+          "description": "",
+          "tags": [
+            "國貿概念",
+            "進出口實務",
+            "鼎新",
+            "Excel",
+            "出口貨物報關",
+            "資料分析"
+          ]
+        }
+      ]
+    },
+    {
+      "resumeId": "r_resume-003",
+      "personaId": "resume-003",
+      "profileNote": "含冷僻詞",
+      "experiences": [
+        {
+          "id": "e1",
+          "title": "課程專題 - 社群使用行為研究",
+          "category": "學業",
+          "timeRange": "2024.02 - 2024.06",
+          "description": "課程專題 - 社群使用行為研究",
+          "tags": [
+            "Figma",
+            "Photoshop",
+            "Wireframe",
+            "Word"
+          ]
+        }
+      ]
+    }
+  ],
+  "jds": [
+    {
+      "jobId": "fit_93bo9",
+      "title": "資料輸入員",
+      "requiredSkills": [
+        "行政事務處理",
+        "報表彙整與管理",
+        "Excel",
+        "Outlook",
+        "Word"
+      ],
+      "jd": "1. 每日通路訂單及退貨單輸入、審核及追蹤，確保資料準確及流程順暢。 2. 每日與倉庫核對訂單出貨的情形。 3. 客戶端未收貨或收貨與出貨不符進行聯繫處理改單。 4. 定期提供業務銷售狀況報表，以供業務人員或主管參考。 5. 客戶端發票退回異常處理。 6. 細心負責抗壓性高、勤快、自我要求及工作效率高、活潑開朗。 7. 協助主管交辦事項 【職工福利】 ◆節慶禮金：三節禮金 ◆安心保障：勞保、健保、退休金提撥。 ◆休假制度：特休假、產假、陪產假、勞基法定假別。 ◆員工購物優惠 ◆冰箱、微波爐隨你用 "
+    },
+    {
+      "jobId": "fit_8f1jv",
+      "title": "上海銀行客服專員",
+      "requiredSkills": [
+        "Excel",
+        "Word"
+      ],
+      "jd": "1.接聽客戶服務專線。 2.月薪32,700另加全勤獎金2,800與服務獎金2,200，輪值津貼(小夜班約9,000，大夜班約 1萬1仟元)，每年調薪制度。 3.排休，每月紅字有幾日就休幾日。 4.享端午、中秋優渥節慶獎金(近幾年各發1或2萬元，12月加發1個月底薪，年終獎金(近幾年最低發2個月) 5.工作地點：交通便利近台北車站(捷運紅、藍線)與北門站 (捷運綠線) 6.人性化排班，輪班可彈性調整。 7.完整教育訓練，輔導考取金融證照，完善學習金融知識。"
+    },
+    {
+      "jobId": "fit_8xjho",
+      "title": "媒體內容編輯企劃",
+      "requiredSkills": [
+        "品牌行銷管理",
+        "行銷策略擬定",
+        "社群媒體經營管理",
+        "Excel",
+        "PowerPoint",
+        "Word",
+        "Adobe Photoshop",
+        "Illustrator"
+      ],
+      "jd": "【工作內容】 1.協助 SPARKiT 官方 IG、LINE 等自媒體內容製作，包含人物或品牌採訪、文案撰寫、圖文架構整理、短影音腳本發想與上稿協作。 2.依據既有品牌方向、展售主題、選品內容與活動資訊，將素材整理為適合社群閱讀的圖文內容。 3.參與內容檔期討論，協助發想人物、選品、生活風格與社群專題的內容企劃。 4.關注流行趨勢、生活風格、設計、選品與藝文活動，協助整理可延伸為社群內容的觀察與素材。 5.與內部團隊或外部對象協作，確保工作項目順利進行。 【品牌介紹】 SPARKiT 是勤美生活創新打造的內容策畫品牌，結合線上自媒體與線下實體空間，透過選品、展售、體驗與內容企劃，期待能成為大眾探索生活風格、流行文化與日常靈感的潮流與文化發信站。 我們相信，改變不一定來自全新的事物，更多時候，是來自重新觀看熟悉事物的方式。SPARKiT 期待成為一個持續產生觀點與火花的場域，讓商品不只是商品，空間不只是空間，透過編輯、策展與混搭，形成新的生活提案。 期待你的加入！"
+    }
+  ],
+  "cases": [
+    {
+      "caseId": "r_resume-011__fit_93bo9",
+      "resumeId": "r_resume-011",
+      "jobId": "fit_93bo9",
+      "expected": {
+        "covered": [
+          "Excel"
+        ],
+        "missing": [
+          "行政事務處理",
+          "報表彙整與管理",
+          "Outlook",
+          "Word"
+        ],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-011__fit_8f1jv",
+      "resumeId": "r_resume-011",
+      "jobId": "fit_8f1jv",
+      "expected": {
+        "covered": [
+          "Excel"
+        ],
+        "missing": [
+          "Word"
+        ],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-011__fit_8xjho",
+      "resumeId": "r_resume-011",
+      "jobId": "fit_8xjho",
+      "expected": {
+        "covered": [
+          "Excel"
+        ],
+        "missing": [
+          "品牌行銷管理",
+          "行銷策略擬定",
+          "社群媒體經營管理",
+          "PowerPoint",
+          "Word",
+          "Adobe Photoshop",
+          "Illustrator"
+        ],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-002__fit_93bo9",
+      "resumeId": "r_resume-002",
+      "jobId": "fit_93bo9",
+      "expected": {
+        "covered": [
+          "Excel",
+          "Outlook",
+          "Word"
+        ],
+        "missing": [
+          "行政事務處理",
+          "報表彙整與管理"
+        ],
+        "notes": "財務報表製作≠報表彙整與管理(做財報 vs 彙整管理各類報表),保守判 missing。此對為 0.62 門檻關鍵測資:語意近而職能異,向量段若判 covered 即門檻過鬆的證據。"
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-002__fit_8f1jv",
+      "resumeId": "r_resume-002",
+      "jobId": "fit_8f1jv",
+      "expected": {
+        "covered": [
+          "Excel",
+          "Word"
+        ],
+        "missing": [],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-002__fit_8xjho",
+      "resumeId": "r_resume-002",
+      "jobId": "fit_8xjho",
+      "expected": {
+        "covered": [
+          "Excel",
+          "Word"
+        ],
+        "missing": [
+          "品牌行銷管理",
+          "行銷策略擬定",
+          "社群媒體經營管理",
+          "PowerPoint",
+          "Adobe Photoshop",
+          "Illustrator"
+        ],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-001__fit_93bo9",
+      "resumeId": "r_resume-001",
+      "jobId": "fit_93bo9",
+      "expected": {
+        "covered": [
+          "Word"
+        ],
+        "missing": [
+          "行政事務處理",
+          "報表彙整與管理",
+          "Excel",
+          "Outlook"
+        ],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-001__fit_8f1jv",
+      "resumeId": "r_resume-001",
+      "jobId": "fit_8f1jv",
+      "expected": {
+        "covered": [
+          "Word"
+        ],
+        "missing": [
+          "Excel"
+        ],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-001__fit_8xjho",
+      "resumeId": "r_resume-001",
+      "jobId": "fit_8xjho",
+      "expected": {
+        "covered": [
+          "Word"
+        ],
+        "missing": [
+          "品牌行銷管理",
+          "行銷策略擬定",
+          "社群媒體經營管理",
+          "Excel",
+          "PowerPoint",
+          "Adobe Photoshop",
+          "Illustrator"
+        ],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-006__fit_93bo9",
+      "resumeId": "r_resume-006",
+      "jobId": "fit_93bo9",
+      "expected": {
+        "covered": [
+          "Excel"
+        ],
+        "missing": [
+          "行政事務處理",
+          "報表彙整與管理",
+          "Outlook",
+          "Word"
+        ],
+        "notes": "資料分析≠報表彙整與管理,語意距離較遠,判 missing。"
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-006__fit_8f1jv",
+      "resumeId": "r_resume-006",
+      "jobId": "fit_8f1jv",
+      "expected": {
+        "covered": [
+          "Excel"
+        ],
+        "missing": [
+          "Word"
+        ],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-006__fit_8xjho",
+      "resumeId": "r_resume-006",
+      "jobId": "fit_8xjho",
+      "expected": {
+        "covered": [
+          "Excel"
+        ],
+        "missing": [
+          "品牌行銷管理",
+          "行銷策略擬定",
+          "社群媒體經營管理",
+          "PowerPoint",
+          "Word",
+          "Adobe Photoshop",
+          "Illustrator"
+        ],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-003__fit_93bo9",
+      "resumeId": "r_resume-003",
+      "jobId": "fit_93bo9",
+      "expected": {
+        "covered": [
+          "Word"
+        ],
+        "missing": [
+          "行政事務處理",
+          "報表彙整與管理",
+          "Excel",
+          "Outlook"
+        ],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-003__fit_8f1jv",
+      "resumeId": "r_resume-003",
+      "jobId": "fit_8f1jv",
+      "expected": {
+        "covered": [
+          "Word"
+        ],
+        "missing": [
+          "Excel"
+        ],
+        "notes": ""
+      },
+      "verified": true
+    },
+    {
+      "caseId": "r_resume-003__fit_8xjho",
+      "resumeId": "r_resume-003",
+      "jobId": "fit_8xjho",
+      "expected": {
+        "covered": [
+          "Word",
+          "Adobe Photoshop"
+        ],
+        "missing": [
+          "品牌行銷管理",
+          "行銷策略擬定",
+          "社群媒體經營管理",
+          "Excel",
+          "PowerPoint",
+          "Illustrator"
+        ],
+        "notes": "Photoshop=Adobe Photoshop 全名簡稱,合併表既有別名,判 covered。"
+      },
+      "verified": true
+    }
+  ]
+}

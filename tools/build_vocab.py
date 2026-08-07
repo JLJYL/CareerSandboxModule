@@ -53,20 +53,20 @@ def mint_id(name: str) -> str:
 
 # ------------------------------------------------ 變體合併（透明、可審查）
 # key = norm(原始字串) → 統一顯示名。過度合併比不合併更危險，只收明確同義。
-MERGE_DISPLAY = {
-    "github": "Git", "git": "Git",
-    "ms sql": "SQL", "mssql": "SQL", "mysql": "SQL", "postgresql": "SQL",
-    "sqlite": "SQL", "t-sql": "SQL",
-    "photoshop": "Adobe Photoshop", "adobe photoshop": "Adobe Photoshop",
-    "illustrator": "Illustrator", "adobe illustrator": "Illustrator",
-    "vuejs": "Vue.js", "vue": "Vue.js", "vue.js": "Vue.js",
-    "nodejs": "Node.js", "node.js": "Node.js",
-    "reactjs": "React", "react": "React",
-    "html5": "HTML", "html": "HTML", "css3": "CSS", "css": "CSS",
-    "powerpoint": "PowerPoint", "excel": "Excel", "word": "Word",
-    "outlook": "Outlook", "javascript": "JavaScript",
+MERGE_DISPLAY_RAW = {
+    "GitHub": "Git", "Git": "Git",
+    "MS SQL": "SQL", "MSSQL": "SQL", "MySQL": "SQL", "PostgreSQL": "SQL",
+    "SQLite": "SQL", "T-SQL": "SQL",
+    "Photoshop": "Adobe Photoshop", "Adobe Photoshop": "Adobe Photoshop",
+    "Illustrator": "Illustrator", "Adobe Illustrator": "Illustrator",
+    "VueJS": "Vue.js", "Vue": "Vue.js", "Vue.js": "Vue.js",
+    "NodeJS": "Node.js", "Node.js": "Node.js",
+    "ReactJS": "React", "React": "React",
+    "HTML5": "HTML", "HTML": "HTML", "CSS3": "CSS", "CSS": "CSS",
+    "PowerPoint": "PowerPoint", "Excel": "Excel", "Word": "Word",
+    "Outlook": "Outlook", "JavaScript": "JavaScript",
 }
-MERGE_DISPLAY = {norm(k): v for k, v in MERGE_DISPLAY.items()}
+MERGE_DISPLAY = {norm(k): v for k, v in MERGE_DISPLAY_RAW.items()}
 
 # 市場層黑名單：門市／物流／庶務類，與本 app 目標職涯（數據/產品/設計/學術）無關
 BLOCK_KEYWORDS = [
@@ -119,6 +119,12 @@ SEEDS = [
     dict(name_zh="React", name_en="React", aliases=["ReactJS", "React.js"]),
     dict(name_zh="機器學習", name_en="Machine Learning",
          aliases=["AI", "ML", "人工智慧", "深度學習", "LLM"]),
+    dict(name_zh="ERP 系統", name_en="ERP Systems",
+         aliases=["鼎新", "正航"]),
+    dict(name_zh="Claude", name_en="Claude",
+         aliases=["Anthropic Claude"]),
+    dict(name_zh="Zeplin", name_en="Zeplin",
+         aliases=[]),
 ]
 
 # MockData 四段經歷的 tags（去重後 9 個；驗收：至少 10/12 個 tag 實例對得上）
@@ -313,6 +319,17 @@ def main():
                  extra_prov=dict(market_score=sc,
                                  occ_pcts=market_occ_pcts.get(raw, {}),
                                  tech_industry_freq=tech_freq.get(raw, 0)))
+
+    # ---- L4 合併表鍵位補掛：每個變體無條件成為對應條目的 alias。
+    # 黃金集 r_resume-003__fit_8xjho 抓到的洞：市場資料只出現過全名時，
+    # 簡稱（Photoshop）不會自動成為別名——別名表不該取決於爬蟲爬到什麼。
+    for raw_key, display in MERGE_DISPLAY_RAW.items():
+        sid = norm2id.get(norm(display))
+        if not sid or norm(raw_key) in norm2id:
+            continue
+        entries[sid]["aliases"].append(raw_key)
+        norm2id[norm(raw_key)] = sid
+        prov[sid]["layers"] = sorted(set(prov[sid]["layers"]) | {"L4_merge_alias"})
 
     # ---------------------------------------------------------------- 驗收
     assert 80 <= len(entries) <= 120, f"條目數 {len(entries)} 不在 80–120"
