@@ -44,7 +44,7 @@
 
 - B 的 category PR、共用尺提案与桶名，将在团队统一合并时共同确认。
 
-- MongoDB Atlas URI 尚待提供；取得 URI 后执行 `tools/ingest_atlas.py --create-index`，完成 586 条资料落地。
+- MongoDB Atlas URI 尚待提供；取得 URI 后执行 `tools/ingest_atlas.py --create-index`，完成 587 条资料落地。
 
 - 上述外部协作事项不影响本次本地黄金集 15/15 回归结果。
 

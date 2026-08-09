@@ -1,7 +1,7 @@
 """本機建 KB 向量索引＋檢索煙霧測試（成員 A，W2）。
 
 --fake 用假向量快速驗流程；--real 用 bge-m3（先 pip install -r requirements-ml.txt，
-首次執行自動下載約 2.3GB 模型，CPU 可跑、586 條約數分鐘）。
+首次執行自動下載約 2.3GB 模型，CPU 可跑、587 條約數分鐘）。
 
 W2 驗收「對真 JD 檢索 top-5 人工看合理」就用這支：
   python tools/build_kb_index.py --real --rebuild
@@ -39,7 +39,7 @@ def main():
         from app.providers.embeddings import BgeM3Embedding
         embedding = BgeM3Embedding()
         print(f"      模型就緒({time.time() - t0:.0f}s)", flush=True)
-        print("[2/3] 建索引:若無快取要對 586 條算向量,CPU 約 10–40 分鐘,"
+        print("[2/3] 建索引:若無快取要對 587 條算向量,CPU 約 10–40 分鐘,"
               "逐批進度如下——", flush=True)
     else:
         embedding = FakeEmbedding()

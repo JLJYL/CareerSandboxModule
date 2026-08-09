@@ -1,12 +1,12 @@
 # W2 交付：檢索與計分（成員 A）— 收官版
 
 > 2026-07-26。取代先前所有 W2 note。W2 三塊全數交付並在 A 本機以真模型驗收：
-> `pytest` **36 passed**；bge-m3 真索引 586 條建置 9 分鐘、查詢秒回；
+> `pytest` **36 passed**；bge-m3 真索引 587 條建置 9 分鐘、查詢秒回；
 > 檢索 top-5 人工覆核合理（驗收紀錄見文末）。
 
 ## 三個工程決定（實戰換來的，PR 描述照抄）
 
-1. **檢索引擎：Chroma → 自製 `VectorRetriever`。** chromadb 1.x 的 Rust 核心在 Windows + Py3.13 觸發 access violation。凍結的是 Retriever Protocol 不是廠牌；586 條規模用零依賴精確餘弦（numpy 可選加速），比 HNSW 近似更精確、決定性、跨平台。W3 正式店面照舊 Atlas Vector Search，`fixtures/atlas/vector_index.json` 不受影響。
+1. **檢索引擎：Chroma → 自製 `VectorRetriever`。** chromadb 1.x 的 Rust 核心在 Windows + Py3.13 觸發 access violation。凍結的是 Retriever Protocol 不是廠牌；587 條規模用零依賴精確餘弦（numpy 可選加速），比 HNSW 近似更精確、決定性、跨平台。W3 正式店面照舊 Atlas Vector Search，`fixtures/atlas/vector_index.json` 不受影響。
 2. **移除 sentencepiece。** 其原生擴充在 Windows + Py3.13 匯入即 access violation；bge-m3 的 tokenizer 走 Rust 快速版（吃 `tokenizer.json`）即可，sentencepiece 純屬多餘的雷。**已裝者必須 `pip uninstall sentencepiece -y`。**
 3. **embedding：FlagEmbedding → 原生 transformers。** FlagEmbedding 新版與 transformers 4.x 隔著 `torch_dtype→dtype` 改名互踩（TypeError），依賴樹又大。dense 向量本體只是「XLM-R 編碼 → 取 CLS → L2 正規化」，`BgeM3Embedding` 直接用 torch + transformers 實作二十行。全系統所有向量（KB、查詢、未來 Atlas 寫入）出自同一實作，內部一致性完整。
 
@@ -16,7 +16,7 @@
 |---|---|
 | `app/providers/embeddings.py` | `FakeEmbedding`（hashlib 決定性，測試/CI 用）＋ `BgeM3Embedding`（transformers 原生：CLS pooling + L2 normalize，CUDA 自動 fp16、CPU fp32，批次進度輸出） |
 | `app/pipeline/normalize.py` | `VocabNormalizer` 三段式：alias 精確比對 → embedding 最近鄰（門檻 0.62）→ `residuals()` 殘留區＝LLM 批次覆核 hook |
-| `app/retrieval/vector_retriever.py` | Retriever Protocol 實作；586 條 KB、type/source/industry 等值過濾、JSON 持久化（含 provider 名，換實作或 KB 變動自動重建；快取為整包重算，KB 長大時重跑一次 `--rebuild` 即可） |
+| `app/retrieval/vector_retriever.py` | Retriever Protocol 實作；587 條 KB、type/source/industry 等值過濾、JSON 持久化（含 provider 名，換實作或 KB 變動自動重建；快取為整包重算，KB 長大時重跑一次 `--rebuild` 即可） |
 | `app/pipeline/scorer.py` | `WeightedScorer`：覆蓋率加權 0.65＋語意 0.35；raw_tag 折扣 0.6；JD 無 required_skills 退化純語意 |
 | `tests/test_w2_retrieval.py` | 12 條驗收（CI 用 Fake，不需模型） |
 | `tools/build_kb_index.py` | 本機建索引＋煙霧查詢；索引存 `data/kb_index.json`（`.gitignore` 需含 `data/`） |
@@ -51,7 +51,7 @@ Python 3.13 在上述組合下**可用**（A 機實證）；仍出原生崩潰�
 ```bat
 pytest tests/ -q                                    :: 36 passed
 set HF_HUB_OFFLINE=1
-python tools\build_kb_index.py --real --rebuild     :: 586 條 / 534s
+python tools\build_kb_index.py --real --rebuild     :: 587 條 / 534s
 python tools\build_kb_index.py --real --query "..." :: top-5 人工覆核
 ```
 
