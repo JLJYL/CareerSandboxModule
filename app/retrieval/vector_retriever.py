@@ -2,7 +2,7 @@
 
 原規劃用 Chroma；其 1.x 的 Rust 核心在 Windows + Python 3.13 觸發 access violation
 （原生層崩潰，非本專案邏輯問題）。凍結的是 Retriever Protocol，不是廠牌——
-在 586 條這個規模，暴力精確餘弦本來就優於 HNSW 近似（精確、決定性、零依賴），
+在 587 條這個規模，暴力精確餘弦本來就優於 HNSW 近似（精確、決定性、零依賴），
 而正式店面 W3 落 MongoDB Atlas Vector Search，本地索引只是過渡期鷹架。
 
 效能：有 numpy 走矩陣運算（毫秒級）；沒有退純 Python（單查詢數十毫秒）——
