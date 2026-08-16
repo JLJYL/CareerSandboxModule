@@ -147,6 +147,65 @@ class CustomizeResponse(BaseModel):
     items: list[CustomizedItemOut] = Field(default_factory=list)
 
 
+# ---- 客製化完整履歷(契約 v1,2026-08-13 凍結):組裝定於模型組,前端照收照畫 ----
+
+class LanguageIn(BaseModel):
+    language: str
+    level: str
+
+
+class ProfileIn(BaseModel):
+    """前端帶入的個人資料(前端本有此資料,模型服務不呼叫後端、保持無狀態)。
+    interests 不採用(定案),不在此結構。"""
+    name: str
+    school: str = ""
+    department: str = ""
+    year: str = ""
+    email: str = ""
+    phone: str = ""
+    bio: str = ""                     # 原文照登,不改寫(定案一)
+    linkedin: str = ""
+    github: str = ""
+    portfolio: str = ""
+    skillsHave: list[str] = Field(default_factory=list)
+    languages: list[LanguageIn] = Field(default_factory=list)
+
+
+class CustomizeFullRequest(BaseModel):
+    userId: str
+    jobId: str
+    profile: ProfileIn
+    experiences: list[ExperienceIn] = Field(min_length=1)
+
+
+class ResumeHeaderOut(BaseModel):
+    name: str
+    eduLine: str                      # 顯示就緒:school · department · year
+    bio: str
+
+
+class ResumeSkillsOut(BaseModel):
+    prioritized: list[str] = Field(default_factory=list)   # 職缺看重且已具備(排前)
+    others: list[str] = Field(default_factory=list)        # 其餘技能(母版序)
+    languages: list[LanguageIn] = Field(default_factory=list)
+
+
+class ResumeExperienceOut(BaseModel):
+    title: str
+    timeRange: str
+    text: str                         # 改寫後全文;弱化條為壓縮句,一律包含
+    matchedKeywords: list[str] = Field(default_factory=list)
+
+
+class CustomizeFullResponse(BaseModel):
+    """欄位順序即顯示順序;experiences 已排好(強化前、命中多到少、平手母版序、弱化後母版序)。
+    不帶 highlighted:PDF 無視覺標記(定案),差異由文字呈現。contact 只含有值的鍵。"""
+    header: ResumeHeaderOut
+    contact: dict[str, str] = Field(default_factory=dict)
+    skills: ResumeSkillsOut
+    experiences: list[ResumeExperienceOut] = Field(default_factory=list)
+
+
 # ---------------------------------------------------------------------------
 # 端點 6：POST /resume/overview（B3；前端連 data class 都沒有 → 我方主筆 PROPOSAL，
 # 待怡君回簽；順位最低，第三週行有餘力才實作）
