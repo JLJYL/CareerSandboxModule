@@ -19,7 +19,7 @@ from app.pipeline.profile import aggregate_display_skills, build_profile
 from app.providers.llm import LLMUnavailable, OpenAICompatibleLLM
 from app.schemas.api import (
     CareerRecommendRequest, CareerRecommendResponse,
-    CustomizeRequest, CustomizeResponse,
+    CustomizeFullRequest, CustomizeFullResponse, CustomizeRequest, CustomizeResponse,
     DraftExperience,
     JobsFitRequest, JobFitOut, JobsFitAllResponse,
     MasterGenerateRequest, MasterGenerateResponse,
@@ -177,6 +177,22 @@ def resume_customize(req: CustomizeRequest):
     except LLMUnavailable:
         llm = None                        # 無金鑰 → 確定性輸出(原文+標記)照樣出貨
     return customize(job, req.experiences, normalizer=_get_normalizer(), llm=llm)
+
+
+@router.post("/resume/customize/full", response_model=CustomizeFullResponse,
+             responses={404: {"description": "jobId 不存在,統一錯誤格式"}})
+def resume_customize_full(req: CustomizeFullRequest):
+    """契約 v1:回傳組裝完成、依顯示順序排列的客製履歷,前端由上往下渲染即可。"""
+    from app.pipeline.jobs_fit import load_jobs
+    from app.pipeline.resume_full import customize_full
+    job = next((j for j in load_jobs() if j["jobId"] == req.jobId), None)
+    if job is None:
+        return _error(404, "job_not_found", f"查無職缺 {req.jobId}")
+    try:
+        llm = OpenAICompatibleLLM()
+    except LLMUnavailable:
+        llm = None
+    return customize_full(job, req.profile, req.experiences, normalizer=_get_normalizer(), llm=llm)
 
 
 @router.post("/resume/overview", response_model=OverviewResponse)
