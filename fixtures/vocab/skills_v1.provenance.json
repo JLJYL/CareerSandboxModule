@@ -11,7 +11,8 @@
  },
  "skm:db1dfd45b1": {
   "layers": [
-   "L0_curated"
+   "L0_curated",
+   "L3_market"
   ],
   "zhang_matched": false,
   "zhang_sources": []
@@ -54,7 +55,8 @@
  },
  "sk:cdd1a93579": {
   "layers": [
-   "L0_curated"
+   "L0_curated",
+   "L3_market"
   ],
   "zhang_matched": true,
   "zhang_sources": [
@@ -131,7 +133,8 @@
  },
  "skm:4235227b51": {
   "layers": [
-   "L0_curated"
+   "L0_curated",
+   "L3_market"
   ],
   "zhang_matched": false,
   "zhang_sources": []
@@ -145,7 +148,8 @@
  },
  "sk:0d61f8370c": {
   "layers": [
-   "L0_curated"
+   "L0_curated",
+   "L3_market"
   ],
   "zhang_matched": true,
   "zhang_sources": [
@@ -154,28 +158,32 @@
  },
  "skm:3f7227146e": {
   "layers": [
-   "L0_curated"
+   "L0_curated",
+   "L3_market"
   ],
   "zhang_matched": false,
   "zhang_sources": []
  },
  "skm:90de35a580": {
   "layers": [
-   "L0_curated"
+   "L0_curated",
+   "L3_market"
   ],
   "zhang_matched": false,
   "zhang_sources": []
  },
  "skm:6b810c90aa": {
   "layers": [
-   "L0_curated"
+   "L0_curated",
+   "L3_market"
   ],
   "zhang_matched": false,
   "zhang_sources": []
  },
  "sk:4209c14379": {
   "layers": [
-   "L0_curated"
+   "L0_curated",
+   "L3_market"
   ],
   "zhang_matched": true,
   "zhang_sources": [
@@ -184,21 +192,24 @@
  },
  "skm:f3eea55526": {
   "layers": [
-   "L0_curated"
+   "L0_curated",
+   "L3_market"
   ],
   "zhang_matched": false,
   "zhang_sources": []
  },
  "skm:f1dda22f6c": {
   "layers": [
-   "L0_curated"
+   "L0_curated",
+   "L3_market"
   ],
   "zhang_matched": false,
   "zhang_sources": []
  },
  "skm:ac2801a3ff": {
   "layers": [
-   "L0_curated"
+   "L0_curated",
+   "L3_market"
   ],
   "zhang_matched": false,
   "zhang_sources": []
@@ -796,7 +807,8 @@
  },
  "sk:bf0c5da7b6": {
   "layers": [
-   "L2_ucan"
+   "L2_ucan",
+   "L3_market"
   ],
   "zhang_matched": true,
   "zhang_sources": [
@@ -1263,8 +1275,7 @@
  },
  "skm:46f1a0bd55": {
   "layers": [
-   "L3_market",
-   "L4_merge_alias"
+   "L3_market"
   ],
   "zhang_matched": false,
   "zhang_sources": [],
@@ -1362,5 +1373,1283 @@
    "UX設計師": 60
   },
   "tech_industry_freq": 4
+ },
+ "skm:39a15b5c7d": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 119,
+  "occ_pcts": {
+   "平面設計／美編": 24,
+   "網頁設計師": 25,
+   "商業設計": 50,
+   "UX設計師": 20
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:6f2ab963b5": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 118,
+  "occ_pcts": {
+   "前端工程師": 22,
+   "UI設計師": 25,
+   "Internet程式設計師": 38,
+   "全端工程師": 33
+  },
+  "tech_industry_freq": 7
+ },
+ "skm:20aa959514": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 114,
+  "occ_pcts": {
+   "產品企劃": 25,
+   "產品管理師": 29,
+   "產品經理": 60
+  },
+  "tech_industry_freq": 3
+ },
+ "skm:2e26e62208": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 104,
+  "occ_pcts": {
+   "軟體工程師": 21,
+   "Internet程式設計師": 50,
+   "全端工程師": 33
+  },
+  "tech_industry_freq": 6
+ },
+ "skm:6fad852037": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 103,
+  "occ_pcts": {
+   "電商行銷": 20,
+   "產品管理師": 43,
+   "營運管理師／系統整合／ERP專案師": 40
+  },
+  "tech_industry_freq": 8
+ },
+ "skm:e4ee22697a": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 99,
+  "occ_pcts": {
+   "社群行銷": 43,
+   "數位行銷": 20,
+   "廣告文案／企劃": 36
+  },
+  "tech_industry_freq": 3
+ },
+ "skm:2ec3f6459e": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 98,
+  "occ_pcts": {
+   "軟體工程師": 25,
+   "全端工程師": 33,
+   "AI工程師": 40
+  },
+  "tech_industry_freq": 6
+ },
+ "skm:3ff2425e48": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 97,
+  "occ_pcts": {
+   "平面設計／美編": 24,
+   "商業設計": 33,
+   "美術設計": 40
+  },
+  "tech_industry_freq": 4
+ },
+ "skm:c9d3a81f5a": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 90,
+  "occ_pcts": {
+   "網路管理工程師": 50,
+   "營運管理師／系統整合／ERP專案師": 40
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:92e67545b2": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 84,
+  "occ_pcts": {
+   "平面設計／美編": 24,
+   "UX設計師": 20,
+   "美術設計": 40
+  },
+  "tech_industry_freq": 1
+ },
+ "sk:4b2debb613": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": true,
+  "zhang_sources": [
+   "icap"
+  ],
+  "market_score": 84,
+  "occ_pcts": {
+   "行銷企劃": 21,
+   "廣告文案／企劃": 43,
+   "電商行銷": 20
+  },
+  "tech_industry_freq": 6
+ },
+ "skm:5381c63e1e": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 83,
+  "occ_pcts": {
+   "Internet程式設計師": 50,
+   "全端工程師": 33
+  },
+  "tech_industry_freq": 5
+ },
+ "skm:c0aa2637a3": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 82,
+  "occ_pcts": {
+   "網路管理工程師": 62,
+   "營運管理師／系統整合／ERP專案師": 20
+  },
+  "tech_industry_freq": 3
+ },
+ "skm:56a82ad61b": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 75,
+  "occ_pcts": {
+   "財務分析／財務人員": 75
+  },
+  "tech_industry_freq": 5
+ },
+ "skm:ac38fcc591": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 75,
+  "occ_pcts": {
+   "財務分析／財務人員": 75
+  },
+  "tech_industry_freq": 3
+ },
+ "skm:851c54045b": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 73,
+  "occ_pcts": {
+   "網站行銷企劃": 43,
+   "電商行銷": 30
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:67c356e752": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 70,
+  "occ_pcts": {
+   "資訊助理": 50
+  },
+  "tech_industry_freq": 10
+ },
+ "skm:cbe6489090": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 69,
+  "occ_pcts": {
+   "社群行銷": 26,
+   "廣告文案／企劃": 43
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:1b24149e61": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 68,
+  "occ_pcts": {
+   "營運管理師／系統整合／ERP專案師": 20
+  },
+  "tech_industry_freq": 24
+ },
+ "skm:254706822c": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 65,
+  "occ_pcts": {
+   "UI設計師": 25,
+   "UX設計師": 40
+  },
+  "tech_industry_freq": 2
+ },
+ "sk:66db086fee": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": true,
+  "zhang_sources": [
+   "icap"
+  ],
+  "market_score": 64,
+  "occ_pcts": {
+   "網站行銷企劃": 21,
+   "行銷主管": 43
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:a6895d66e2": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 62,
+  "occ_pcts": {
+   "網路管理工程師": 62
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:aeb150df23": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 62,
+  "occ_pcts": {
+   "網路管理工程師": 62
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:1d83d4cc1d": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 60,
+  "occ_pcts": {
+   "美術設計": 60
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:5b079bd475": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 60,
+  "occ_pcts": {
+   "行銷企劃": 24,
+   "廣告文案／企劃": 36
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:e0a2cf9a0a": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 58,
+  "occ_pcts": {
+   "網路管理工程師": 38,
+   "營運管理師／系統整合／ERP專案師": 20
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:5cb87371d8": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 50,
+  "occ_pcts": {
+   "網路管理工程師": 50
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:69d313824e": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 50,
+  "occ_pcts": {
+   "財務分析／財務人員": 50
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:4b1354f781": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 50,
+  "occ_pcts": {
+   "網路管理工程師": 50
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:7198eac042": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 50,
+  "occ_pcts": {
+   "數位行銷": 20,
+   "電商行銷": 30
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:9bede48503": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 49,
+  "occ_pcts": {
+   "電商行銷": 20,
+   "產品管理師": 29
+  },
+  "tech_industry_freq": 6
+ },
+ "skm:dcdddb71a5": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 45,
+  "occ_pcts": {
+   "產品行銷企劃": 23
+  },
+  "tech_industry_freq": 11
+ },
+ "skm:a3c140ebdc": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 43,
+  "occ_pcts": {
+   "行銷主管": 43
+  },
+  "tech_industry_freq": 4
+ },
+ "skm:dabe0de9c9": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 42,
+  "occ_pcts": {},
+  "tech_industry_freq": 21
+ },
+ "skm:b419464e78": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 41,
+  "occ_pcts": {
+   "網站行銷企劃": 21,
+   "營運管理師／系統整合／ERP專案師": 20
+  },
+  "tech_industry_freq": 4
+ },
+ "skm:faddb080f5": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 40,
+  "occ_pcts": {
+   "美術設計": 40
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:503efa130e": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 40,
+  "occ_pcts": {
+   "UX設計師": 20,
+   "美術設計": 20
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:10f9cd6045": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 40,
+  "occ_pcts": {
+   "UX設計師": 20,
+   "美術設計": 20
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:4805d8bfa5": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 40,
+  "occ_pcts": {
+   "電商行銷": 20,
+   "產品經理": 20
+  },
+  "tech_industry_freq": 3
+ },
+ "skm:22704a1370": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 40,
+  "occ_pcts": {
+   "產品經理": 40
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:d37ca74708": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 40,
+  "occ_pcts": {
+   "AI工程師": 40
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:dacf23d255": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 38,
+  "occ_pcts": {
+   "財務分析／財務人員": 38
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:2d5878bc8b": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 38,
+  "occ_pcts": {
+   "財務分析／財務人員": 38
+  },
+  "tech_industry_freq": 1
+ },
+ "sk:76fb4d30dc": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": true,
+  "zhang_sources": [
+   "icap"
+  ],
+  "market_score": 38,
+  "occ_pcts": {
+   "Internet程式設計師": 38
+  },
+  "tech_industry_freq": 4
+ },
+ "skm:b5c64d2dca": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 38,
+  "occ_pcts": {
+   "網路管理工程師": 38
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:b641764731": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 38,
+  "occ_pcts": {
+   "財務分析／財務人員": 38
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:ee3fa2be41": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 31,
+  "occ_pcts": {
+   "產品行銷企劃": 31
+  },
+  "tech_industry_freq": 4
+ },
+ "skm:54e0c177ac": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 25,
+  "occ_pcts": {
+   "Internet程式設計師": 25
+  },
+  "tech_industry_freq": 2
+ },
+ "sk:c5381dc540": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": true,
+  "zhang_sources": [
+   "ucan"
+  ],
+  "market_score": 25,
+  "occ_pcts": {
+   "網路管理工程師": 25
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:273798b0e5": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 25,
+  "occ_pcts": {
+   "網路管理工程師": 25
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:74ecd9bd51": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 25,
+  "occ_pcts": {
+   "財務分析／財務人員": 25
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:4bd92534f8": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 25,
+  "occ_pcts": {
+   "網路管理工程師": 25
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:3971ccf209": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 25,
+  "occ_pcts": {
+   "財務分析／財務人員": 25
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:fbd431b2b3": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 25,
+  "occ_pcts": {
+   "財務分析／財務人員": 25
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:d893bfbbcb": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 25,
+  "occ_pcts": {
+   "網路管理工程師": 25
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:ab0bec59ad": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 24,
+  "occ_pcts": {},
+  "tech_industry_freq": 12
+ },
+ "skm:f8861550d8": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 24,
+  "occ_pcts": {},
+  "tech_industry_freq": 12
+ },
+ "skm:ac94778251": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 24,
+  "occ_pcts": {},
+  "tech_industry_freq": 12
+ },
+ "skm:d576d77cab": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 23,
+  "occ_pcts": {
+   "產品行銷企劃": 23
+  },
+  "tech_industry_freq": 3
+ },
+ "sk:5d46c0d51f": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": true,
+  "zhang_sources": [
+   "icap"
+  ],
+  "market_score": 23,
+  "occ_pcts": {
+   "產品行銷企劃": 23
+  },
+  "tech_industry_freq": 7
+ },
+ "skm:78aa87206d": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 23,
+  "occ_pcts": {
+   "產品行銷企劃": 23
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:d11760dc49": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 22,
+  "occ_pcts": {},
+  "tech_industry_freq": 11
+ },
+ "skm:14a775c292": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 22,
+  "occ_pcts": {
+   "前端工程師": 22
+  },
+  "tech_industry_freq": 6
+ },
+ "skm:81d9bf593b": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 22,
+  "occ_pcts": {
+   "前端工程師": 22
+  },
+  "tech_industry_freq": 5
+ },
+ "skm:87acad7c33": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "美術設計": 20
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:ab0ddc029a": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "AI工程師": 20
+  },
+  "tech_industry_freq": 3
+ },
+ "skm:9b794bcc23": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "AI工程師": 20
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:468da084e9": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "AI工程師": 20
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:66478f09f5": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {},
+  "tech_industry_freq": 10
+ },
+ "skm:f5be5346a6": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "產品經理": 20
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:67a194259c": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "產品經理": 20
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:7b99f61012": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "美術設計": 20
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:def5a19e8d": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "電商行銷": 20
+  },
+  "tech_industry_freq": 2
+ },
+ "skm:95afea1cfb": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "營運管理師／系統整合／ERP專案師": 20
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:752ed382a1": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "AI工程師": 20
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:7f64f1cbdf": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "AI工程師": 20
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:23ea57eaaf": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "產品經理": 20
+  },
+  "tech_industry_freq": 0
+ },
+ "sk:a0548c031f": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": true,
+  "zhang_sources": [
+   "ucan"
+  ],
+  "market_score": 20,
+  "occ_pcts": {
+   "產品經理": 20
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:96db34b611": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "產品經理": 20
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:f9ff9ec620": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "產品經理": 20
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:275e6312dd": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "營運管理師／系統整合／ERP專案師": 20
+  },
+  "tech_industry_freq": 3
+ },
+ "skm:1d84144e14": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "UX設計師": 20
+  },
+  "tech_industry_freq": 1
+ },
+ "skm:2db2d27e74": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "美術設計": 20
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:79a3fe3c1f": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "產品經理": 20
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:24cbdcf12a": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 20,
+  "occ_pcts": {
+   "產品經理": 20
+  },
+  "tech_industry_freq": 0
+ },
+ "skm:1074b488b3": {
+  "layers": [
+   "L3_market"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "market_score": 18,
+  "occ_pcts": {},
+  "tech_industry_freq": 9
+ },
+ "skm:4482611cc2": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:47ff004327": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:006f254fcc": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:134be5f907": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:eacc0c469b": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:b63fbf2026": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:264f39cab8": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:9c2cef27ef": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:a8861937d3": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:98f54143ab": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:6170ca2b02": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:c709bb7dcc": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:45c979fec9": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:d881af6d80": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:774421916a": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:a9ca11a10f": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:e416402f89": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:dddd7262ac": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:5c8600f48b": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:694455e2ae": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "sk:189f301e78": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": true,
+  "zhang_sources": [
+   "icap",
+   "ucan"
+  ],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:94e26e2b8b": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:a2d4ab089f": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:7910f46815": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:bf7819a7d3": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
+ },
+ "skm:e84c745346": {
+  "layers": [
+   "L5_interview_coverage"
+  ],
+  "zhang_matched": false,
+  "zhang_sources": [],
+  "reason": "面試黃金集標記鍵，未進 L3 市場層"
  }
 }
