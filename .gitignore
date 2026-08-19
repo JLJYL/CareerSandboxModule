@@ -5,7 +5,14 @@ __pycache__/
 *.pyc
 .pytest_cache/
 chroma_data/
-data/
+
+# data/ 預設不進版控（爬蟲產出的大檔），但重建詞彙表的輸入必須留下——
+# 沒有它們，下一個人跑不出 skills_v1.json，只能來問人檔案在哪。
+data/*
+!data/zhang/
+!data/zhang/*.jsonl
+!data/golden_skill_keys.json
+
 fixtures/samples/*
 !fixtures/samples/README.md
 !fixtures/samples/jd_data_analyst.txt
