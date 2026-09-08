@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 import unicodedata
 from collections import Counter, defaultdict
@@ -69,12 +70,38 @@ MERGE_DISPLAY_RAW = {
 MERGE_DISPLAY = {norm(k): v for k, v in MERGE_DISPLAY_RAW.items()}
 
 # 市場層黑名單：門市／物流／庶務類，與本 app 目標職涯（數據/產品/設計/學術）無關
+#
+# ★ 只用於 L3。這張表回答「這個 app 要服務哪些職涯」——產品範圍判斷。
+#   不要拿去過濾 L5，理由見 is_spec_entry 上方的說明。
 BLOCK_KEYWORDS = [
     "包裝", "揀貨", "理貨", "補貨", "進貨", "退貨", "出貨", "盤點", "倉庫",
     "櫃檯", "接待", "收銀", "售票", "打字", "電話接聽", "訂位", "領檯",
     "吧檯", "飲料調製", "餐點", "清潔", "消毒", "保全", "駕駛", "傳票",
     "收發", "影印", "庶務", "跑腿", "電訪",
 ]
+
+#: 規格型條目：不是技能，是**任職條件**。
+#:
+#: ★ 跟 BLOCK_KEYWORDS 是兩件不同的事，不要混：
+#:
+#:     BLOCK_KEYWORDS  「這個職能不在目標職涯」→ 產品範圍判斷，只用於 L3
+#:     is_spec_entry   「這根本不是技能」      → 資料品質判斷，所有層適用
+#:
+#:   「中文打字」會被收進來（黃金集標到的鍵，要能量），
+#:   「中文打字20~50」不會（人不會在面試裡講出這串字，
+#:   留著它會變成永久的假指控——每一次都出現）。
+SPEC_PATTERN = re.compile(
+    r"\d+\s*[~～-]\s*\d+|\d+\s*(字|級|年以上|分鐘)|證照|檢定|執照|駕照"
+)
+
+
+def is_spec_entry(surface: str) -> bool:
+    """這個字串是任職條件而非技能。
+
+    ★ 從面試 repo 複製過來的，**不是 import**——Module 是上游，
+      不該依賴 Interview。兩份要同步，但這個正則很穩定。
+    """
+    return bool(SPEC_PATTERN.search(surface))
 
 # ------------------------------------------------ L0：精選種子
 # 目的：(a) MockData 9 tag 保證命中 (b) 給常見概念一個乾淨的標準名。
@@ -340,7 +367,24 @@ def main():
     #   所以這一層補的是測量前提，不是產品覆蓋率。分開標記以便日後檢討。
     if args.golden_skills:
         for name in json.loads(args.golden_skills.read_text(encoding="utf-8")):
-            if norm(name) in norm2id or blocked(name):
+            # ★ L5 不套 BLOCK_KEYWORDS。那張表回答的是「這個 app 要服務哪些
+            #   職涯」——產品範圍判斷，只用於 L3。L5 回答的是「黃金集標到的
+            #   東西量不量得到」——測量前提。兩者沒有關係。
+            #
+            #   混用的後果是一個壞性質：**黑名單越保守，指標看起來越好**。
+            #   被擋的技能會從計分裡排除，而被擋的往往是系統本來就處理得
+            #   比較差的那一批。加一條黑名單關鍵字，覆蓋率警告少一條、
+            #   指標微微上升——那是難題被移出考卷，不是變好，而且它是沉默的：
+            #   沒有人會因為覆蓋率上升去查。
+            #
+            #   實際擋掉過三條：中文打字（['打字']）、
+            #   櫃檯門市接待與需求服務（['櫃檯','接待']）、
+            #   電話接聽與人員接待事項（['接待','電話接聽']）。
+            #   後兩條是 104 上的真職能，出現在黃金集是因為 resume-079
+            #   （會計系）配到行政助理職缺——使用者真的會遇到這種 JD。
+            if norm(name) in norm2id:
+                continue
+            if is_spec_entry(name):
                 continue
             display = MERGE_DISPLAY.get(norm(name), unicodedata.normalize("NFKC", name))
             is_latin = all(ord(c) < 0x2E80 for c in display)
