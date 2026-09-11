@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 import unicodedata
 from collections import Counter, defaultdict
@@ -69,12 +70,38 @@ MERGE_DISPLAY_RAW = {
 MERGE_DISPLAY = {norm(k): v for k, v in MERGE_DISPLAY_RAW.items()}
 
 # 市場層黑名單：門市／物流／庶務類，與本 app 目標職涯（數據/產品/設計/學術）無關
+#
+# ★ 只用於 L3。這張表回答「這個 app 要服務哪些職涯」——產品範圍判斷。
+#   不要拿去過濾 L5，理由見 is_spec_entry 上方的說明。
 BLOCK_KEYWORDS = [
     "包裝", "揀貨", "理貨", "補貨", "進貨", "退貨", "出貨", "盤點", "倉庫",
     "櫃檯", "接待", "收銀", "售票", "打字", "電話接聽", "訂位", "領檯",
     "吧檯", "飲料調製", "餐點", "清潔", "消毒", "保全", "駕駛", "傳票",
     "收發", "影印", "庶務", "跑腿", "電訪",
 ]
+
+#: 規格型條目：不是技能，是**任職條件**。
+#:
+#: ★ 跟 BLOCK_KEYWORDS 是兩件不同的事，不要混：
+#:
+#:     BLOCK_KEYWORDS  「這個職能不在目標職涯」→ 產品範圍判斷，只用於 L3
+#:     is_spec_entry   「這根本不是技能」      → 資料品質判斷，所有層適用
+#:
+#:   「中文打字」會被收進來（黃金集標到的鍵，要能量），
+#:   「中文打字20~50」不會（人不會在面試裡講出這串字，
+#:   留著它會變成永久的假指控——每一次都出現）。
+SPEC_PATTERN = re.compile(
+    r"\d+\s*[~～-]\s*\d+|\d+\s*(字|級|年以上|分鐘)|證照|檢定|執照|駕照"
+)
+
+
+def is_spec_entry(surface: str) -> bool:
+    """這個字串是任職條件而非技能。
+
+    ★ 從面試 repo 複製過來的，**不是 import**——Module 是上游，
+      不該依賴 Interview。兩份要同步，但這個正則很穩定。
+    """
+    return bool(SPEC_PATTERN.search(surface))
 
 # ------------------------------------------------ L0：精選種子
 # 目的：(a) MockData 9 tag 保證命中 (b) 給常見概念一個乾淨的標準名。
@@ -100,8 +127,23 @@ SEEDS = [
          aliases=["全端", "Full Stack", "Fullstack"]),
     dict(name_zh="資料視覺化", name_en="Data Visualization",
          aliases=["圖表製作", "Tableau", "Power BI"]),
+    # ★ 不要把「專案溝通/整合管理」「專案時間/進度控管」掛成別名。
+    #
+    #   那兩個是 PMBOK 的知識領域,跟「專案管理」是子集關係不是同義。
+    #   同組的其他領域(專案成本╱品質╱風險管理、專案規劃執行╱範圍管理、
+    #   專案人力資源管理)本來就各有獨立編號——只有這兩個被折進來,
+    #   看起來是當初寫種子時順手加的,不是分類決定。
+    #
+    #   後果:黃金集把它們標成不同技能(履歷有「專案管理」has=2、
+    #   JD 要「專案時間╱進度控管」wants=2),折疊到同一個 skill_id 之後
+    #   interview_eval 保守合併取小,變成 has=0 且 wants=0——
+    #   **同時被判成「履歷沒有」且「JD 不要求」**,而實際上兩邊都有。
+    #   ivw-006 那一格 precision 因此是 0.000。
+    #
+    #   拿掉之後它們會從 L5 覆蓋層進來,各自拿到 skm: 編號。
+    #   張圖譜裡沒有這兩個條目,所以不會從 L1/L2 合併回來(已查證)。
     dict(name_zh="專案管理", name_en="Project Management",
-         aliases=["專案溝通/整合管理", "專案時間/進度控管", "專案管理能力"]),
+         aliases=["專案管理能力"]),
     dict(name_zh="A/B 測試", name_en="A/B Testing",
          aliases=["AB測試", "A/B測試", "AB Test"]),
     dict(name_zh="統計分析", name_en="Statistics",
@@ -125,6 +167,33 @@ SEEDS = [
          aliases=["Anthropic Claude"]),
     dict(name_zh="Zeplin", name_en="Zeplin",
          aliases=[]),
+    # ★ 以下七個是拿 JD 抽取器的輸出對照詞彙表時發現的缺口。
+    #
+    #   抽取器從 JD 散文抽出的 95 個技能裡,57 個在詞彙表裡不存在,
+    #   導致 --jd-source extracted 的 JD 集 recall 只有 0.185(FN 97),
+    #   連帶讓漏講 recall 從 1.000 掉到 0.375——八個該給的建議只給得出三個。
+    #
+    #   那 57 個分三類,這裡只補**明確的技術名詞**(第二類):
+    #
+    #     一、別名對不上  技能有、用詞不同(ERP → ERP 系統、市場分析 →
+    #                    市場調查資料分析與報告撰寫)。補別名要逐個判斷等價性,
+    #                    補太寬會製造假匹配——「專案管理」那次就是這樣出事的。
+    #     二、真的缺的技術名詞  ← 這裡補的
+    #     三、任務不是技能  網銀匯款、公告上架、目標客群設定之類。
+    #                    那是 JD 散文寫的工作項目,跟技能標籤不同層,
+    #                    不該塞進詞彙表,要跟 B 討論抽取器該抽哪個粒度。
+    #
+    #   只補第二類是因為它們沒有歧義:TypeScript 就是 TypeScript,
+    #   不需要判斷「這算不算另一個技能的別名」。
+    dict(name_zh="TypeScript", name_en="TypeScript", aliases=["TS"]),
+    dict(name_zh="Redux", name_en="Redux", aliases=[]),
+    dict(name_zh="Vuex", name_en="Vuex", aliases=[]),
+    dict(name_zh="RESTful API", name_en="RESTful API",
+         aliases=["REST API", "RESTful", "REST"]),
+    dict(name_zh="Bootstrap", name_en="Bootstrap", aliases=[]),
+    dict(name_zh="ETL", name_en="ETL", aliases=["ETL開發", "資料管線"]),
+    dict(name_zh="Google Sheets", name_en="Google Sheets",
+         aliases=["Google 試算表", "GoogleSheets"]),
 ]
 
 # MockData 四段經歷的 tags（去重後 9 個；驗收：至少 10/12 個 tag 實例對得上）
@@ -196,6 +265,7 @@ def main():
     ap.add_argument("--jobs", required=True, type=Path)
     ap.add_argument("--out", type=Path, default=REPO / "fixtures/vocab/skills_v1.json")
     ap.add_argument("--target", type=int, default=110, help="目標條目數（80–120 之間）")
+    ap.add_argument("--golden-skills", type=Path, help="面試黃金集用到的技能字串清單（JSON 陣列），補足測量覆蓋率")
     args = ap.parse_args()
 
     zhang_by_id, zhang_index = build_zhang_index(args.zhang_skills)
@@ -331,8 +401,43 @@ def main():
         norm2id[norm(raw_key)] = sid
         prov[sid]["layers"] = sorted(set(prov[sid]["layers"]) | {"L4_merge_alias"})
 
+    # ---- L5 面試黃金集覆蓋（可選）
+    # ★ 這一層跟 L3 的方法不同：L3 照 market_score 排序取前 N，
+    #   L5 是「黃金集用得到但排不進 L3」的長尾（AJAX / MES / HTML/CSS 之類）。
+    #   存在的理由不是它們重要，是**沒有它們就量不準**——實測覆蓋率 64% 時，
+    #   對不上的標記鍵會被排除計分，而它們正好是最難的那批，指標因此偏樂觀。
+    #   所以這一層補的是測量前提，不是產品覆蓋率。分開標記以便日後檢討。
+    if args.golden_skills:
+        for name in json.loads(args.golden_skills.read_text(encoding="utf-8")):
+            # ★ L5 不套 BLOCK_KEYWORDS。那張表回答的是「這個 app 要服務哪些
+            #   職涯」——產品範圍判斷，只用於 L3。L5 回答的是「黃金集標到的
+            #   東西量不量得到」——測量前提。兩者沒有關係。
+            #
+            #   混用的後果是一個壞性質：**黑名單越保守，指標看起來越好**。
+            #   被擋的技能會從計分裡排除，而被擋的往往是系統本來就處理得
+            #   比較差的那一批。加一條黑名單關鍵字，覆蓋率警告少一條、
+            #   指標微微上升——那是難題被移出考卷，不是變好，而且它是沉默的：
+            #   沒有人會因為覆蓋率上升去查。
+            #
+            #   實際擋掉過三條：中文打字（['打字']）、
+            #   櫃檯門市接待與需求服務（['櫃檯','接待']）、
+            #   電話接聽與人員接待事項（['接待','電話接聽']）。
+            #   後兩條是 104 上的真職能，出現在黃金集是因為 resume-079
+            #   （會計系）配到行政助理職缺——使用者真的會遇到這種 JD。
+            if norm(name) in norm2id:
+                continue
+            if is_spec_entry(name):
+                continue
+            display = MERGE_DISPLAY.get(norm(name), unicodedata.normalize("NFKC", name))
+            is_latin = all(ord(c) < 0x2E80 for c in display)
+            register(display,
+                     name_en=display if is_latin else "",
+                     aliases=([name] if norm(name) != norm(display) else []),
+                     layer="L5_interview_coverage",
+                     extra_prov=dict(reason="面試黃金集標記鍵，未進 L3 市場層"))
+
     # ---------------------------------------------------------------- 驗收
-    assert 80 <= len(entries) <= 120, f"條目數 {len(entries)} 不在 80–120"
+    assert 80 <= len(entries) <= 320, f"條目數 {len(entries)} 不在 80–320"    
     covered, missing = [], []
     for tag in MOCKDATA_TAGS:
         (covered if norm(tag) in norm2id else missing).append(tag)
@@ -352,7 +457,11 @@ def main():
 
     n_sk = sum(1 for e in out if e["skill_id"].startswith("sk:"))
     layers = Counter(l for p in prov.values() for l in p["layers"])
-    print(f"詞彙表 v1：{len(out)} 條 → {args.out.relative_to(REPO)}")
+    try:
+        shown = args.out.resolve().relative_to(REPO)
+    except ValueError:
+        shown = args.out          # 輸出在 repo 之外或給相對路徑時，直接印原樣
+    print(f"詞彙表：{len(out)} 條 → {shown}")
     print(f"  沿用張圖譜權威 ID(sk:)：{n_sk}；自鑄(skm:)：{len(out) - n_sk}")
     print(f"  層別：{dict(layers)}")
     print(f"  MockData tag 覆蓋：{len(covered)}/9（{covered}）")

@@ -27,7 +27,13 @@ MOCKDATA_TAG_INSTANCES = [
 
 def test_vocab_loads_and_size():
     vocab = load_vocabulary()
-    assert 80 <= len(vocab) <= 120
+    # 上限 120→320：面試黃金集實測，110 條只涵蓋真實 JD 技能的 32%，
+    # 對不上的會被排除計分且正好是最難的那批，指標因此偏樂觀。
+    # 條目數由 build_vocab.py 的 --target 控制，L3 候選池受入場條件
+    # (pct>=20 / tech_freq>=9 / blocked()) 限制，調高時會自然停在池底。
+    # ★ 這個上限與 build_vocab.py 的 assert 是同一個約束的兩份複本，
+    #   改一邊要改另一邊。
+    assert 80 <= len(vocab) <= 320
 
 
 def test_vocab_ids_unique():
