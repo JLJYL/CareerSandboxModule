@@ -127,8 +127,23 @@ SEEDS = [
          aliases=["全端", "Full Stack", "Fullstack"]),
     dict(name_zh="資料視覺化", name_en="Data Visualization",
          aliases=["圖表製作", "Tableau", "Power BI"]),
+    # ★ 不要把「專案溝通/整合管理」「專案時間/進度控管」掛成別名。
+    #
+    #   那兩個是 PMBOK 的知識領域,跟「專案管理」是子集關係不是同義。
+    #   同組的其他領域(專案成本╱品質╱風險管理、專案規劃執行╱範圍管理、
+    #   專案人力資源管理)本來就各有獨立編號——只有這兩個被折進來,
+    #   看起來是當初寫種子時順手加的,不是分類決定。
+    #
+    #   後果:黃金集把它們標成不同技能(履歷有「專案管理」has=2、
+    #   JD 要「專案時間╱進度控管」wants=2),折疊到同一個 skill_id 之後
+    #   interview_eval 保守合併取小,變成 has=0 且 wants=0——
+    #   **同時被判成「履歷沒有」且「JD 不要求」**,而實際上兩邊都有。
+    #   ivw-006 那一格 precision 因此是 0.000。
+    #
+    #   拿掉之後它們會從 L5 覆蓋層進來,各自拿到 skm: 編號。
+    #   張圖譜裡沒有這兩個條目,所以不會從 L1/L2 合併回來(已查證)。
     dict(name_zh="專案管理", name_en="Project Management",
-         aliases=["專案溝通/整合管理", "專案時間/進度控管", "專案管理能力"]),
+         aliases=["專案管理能力"]),
     dict(name_zh="A/B 測試", name_en="A/B Testing",
          aliases=["AB測試", "A/B測試", "AB Test"]),
     dict(name_zh="統計分析", name_en="Statistics",
@@ -152,6 +167,33 @@ SEEDS = [
          aliases=["Anthropic Claude"]),
     dict(name_zh="Zeplin", name_en="Zeplin",
          aliases=[]),
+    # ★ 以下七個是拿 JD 抽取器的輸出對照詞彙表時發現的缺口。
+    #
+    #   抽取器從 JD 散文抽出的 95 個技能裡,57 個在詞彙表裡不存在,
+    #   導致 --jd-source extracted 的 JD 集 recall 只有 0.185(FN 97),
+    #   連帶讓漏講 recall 從 1.000 掉到 0.375——八個該給的建議只給得出三個。
+    #
+    #   那 57 個分三類,這裡只補**明確的技術名詞**(第二類):
+    #
+    #     一、別名對不上  技能有、用詞不同(ERP → ERP 系統、市場分析 →
+    #                    市場調查資料分析與報告撰寫)。補別名要逐個判斷等價性,
+    #                    補太寬會製造假匹配——「專案管理」那次就是這樣出事的。
+    #     二、真的缺的技術名詞  ← 這裡補的
+    #     三、任務不是技能  網銀匯款、公告上架、目標客群設定之類。
+    #                    那是 JD 散文寫的工作項目,跟技能標籤不同層,
+    #                    不該塞進詞彙表,要跟 B 討論抽取器該抽哪個粒度。
+    #
+    #   只補第二類是因為它們沒有歧義:TypeScript 就是 TypeScript,
+    #   不需要判斷「這算不算另一個技能的別名」。
+    dict(name_zh="TypeScript", name_en="TypeScript", aliases=["TS"]),
+    dict(name_zh="Redux", name_en="Redux", aliases=[]),
+    dict(name_zh="Vuex", name_en="Vuex", aliases=[]),
+    dict(name_zh="RESTful API", name_en="RESTful API",
+         aliases=["REST API", "RESTful", "REST"]),
+    dict(name_zh="Bootstrap", name_en="Bootstrap", aliases=[]),
+    dict(name_zh="ETL", name_en="ETL", aliases=["ETL開發", "資料管線"]),
+    dict(name_zh="Google Sheets", name_en="Google Sheets",
+         aliases=["Google 試算表", "GoogleSheets"]),
 ]
 
 # MockData 四段經歷的 tags（去重後 9 個；驗收：至少 10/12 個 tag 實例對得上）
