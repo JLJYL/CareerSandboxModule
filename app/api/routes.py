@@ -5,6 +5,11 @@
   第 2 週  /career/recommend、/jobs/* → 接真檢索與評分（A 供料、B 接線）
   第 3 週  /resume/customize → 真客製；/resume/overview 行有餘力
 骨架期的價值：前端與測試從 Day 2 起就能對著「正確形狀」開發。
+
+職缺來源（後端組接線後）：/jobs/{id}/fit、/resume/customize、/resume/customize/full
+的 jobId 改經 jobs_fit.get_job() 解析——先查 CareerSandboxDB.jobs（_id 或 sourceId），
+查不到再退回 fixtures，既有測試與舊版 fit_<sourceId> 格式不受影響。
+/jobs/fit-all 仍走 fixtures（對整批爬蟲職缺計分成本過高，另案處理）。
 """
 import json
 from pathlib import Path
@@ -154,9 +159,9 @@ def jobs_fit_all(req: JobsFitRequest) -> JobsFitAllResponse:
 @router.post("/jobs/{job_id}/fit", response_model=JobFitOut,
              responses={404: {"description": "jobId 不存在,統一錯誤格式"}})
 def job_fit(job_id: str, req: JobsFitRequest):
-    from app.pipeline.jobs_fit import fit_one, load_jobs
+    from app.pipeline.jobs_fit import fit_one, get_job
     from app.pipeline.recommend import profile_from_experiences
-    job = next((j for j in load_jobs() if j["jobId"] == job_id), None)
+    job = get_job(job_id)                 # DB (_id / sourceId) → fixtures
     if job is None:
         return _error(404, "job_not_found", f"查無職缺 {job_id}")
     normalizer = _get_normalizer()
@@ -168,8 +173,8 @@ def job_fit(job_id: str, req: JobsFitRequest):
              responses={404: {"description": "jobId 不存在,統一錯誤格式"}})
 def resume_customize(req: CustomizeRequest):
     from app.pipeline.customize import customize
-    from app.pipeline.jobs_fit import load_jobs
-    job = next((j for j in load_jobs() if j["jobId"] == req.jobId), None)
+    from app.pipeline.jobs_fit import get_job
+    job = get_job(req.jobId)              # DB (_id / sourceId) → fixtures
     if job is None:
         return _error(404, "job_not_found", f"查無職缺 {req.jobId}")
     try:
@@ -183,9 +188,9 @@ def resume_customize(req: CustomizeRequest):
              responses={404: {"description": "jobId 不存在,統一錯誤格式"}})
 def resume_customize_full(req: CustomizeFullRequest):
     """契約 v1:回傳組裝完成、依顯示順序排列的客製履歷,前端由上往下渲染即可。"""
-    from app.pipeline.jobs_fit import load_jobs
+    from app.pipeline.jobs_fit import get_job
     from app.pipeline.resume_full import customize_full
-    job = next((j for j in load_jobs() if j["jobId"] == req.jobId), None)
+    job = get_job(req.jobId)              # DB (_id / sourceId) → fixtures
     if job is None:
         return _error(404, "job_not_found", f"查無職缺 {req.jobId}")
     try:
