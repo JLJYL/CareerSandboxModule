@@ -2,7 +2,8 @@
 流程:輪廓(正規化) → 逐職缺 Scorer 計分(requiredSkills 覆蓋 + JD 全文語意) → 排序組裝。
 鐵律:分數與差集只認 Scorer;styleTag 用確定性規則從技能組成推導,不靠 LLM。
 
-職缺來源:get_job() 先查 CareerSandboxDB.jobs(後端組的 104 爬蟲資料),查不到才退回
+職缺來源:get_job() 依序查 CareerSandboxDB.jobs(後端組的 104 爬蟲資料)、
+CareerSandboxDB.job_targets(使用者自行貼 JD 建立的求職目標),都查不到才退回
 fixtures/jobs/jobs_v1.json。load_jobs()/fit_all() 仍只讀 fixtures,既有測試不受影響。
 """
 from app.config import settings  # noqa: F401  (ensures .env is loaded before any DB lookup)
@@ -31,14 +32,14 @@ def load_jobs(path: Path = _JOBS_PATH) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# DB-backed job lookup (backend team's crawled `jobs` collection)
+# DB-backed job lookup (backend team's collections)
 # ---------------------------------------------------------------------------
 
 _mongo_client = None
 
 
-def _jobs_collection():
-    """Lazy pymongo handle to CareerSandboxDB.jobs.
+def _db():
+    """Lazy pymongo handle to CareerSandboxDB.
     Returns None when MONGODB_URI is not configured so callers fall back to fixtures."""
     global _mongo_client
     uri = os.getenv("MONGODB_URI")
@@ -47,12 +48,11 @@ def _jobs_collection():
     if _mongo_client is None:
         from pymongo import MongoClient
         _mongo_client = MongoClient(uri, serverSelectionTimeoutMS=3000)
-    db_name = os.getenv("MONGODB_DB", "CareerSandboxDB")
-    return _mongo_client[db_name]["jobs"]
+    return _mongo_client[os.getenv("MONGODB_DB", "CareerSandboxDB")]
 
 
 def _from_db_doc(doc: dict) -> dict:
-    """Map a crawled 104 job document to the dict shape the pipeline expects.
+    """Map a crawled 104 job document (collection `jobs`) to the pipeline shape.
 
     Field mapping:
       jobId          <- str(_id)
@@ -80,27 +80,63 @@ def _from_db_doc(doc: dict) -> dict:
     }
 
 
+def _from_target_doc(doc: dict) -> dict:
+    """Map a user-created JobTarget (collection `job_targets`: pasted JD, no crawled
+    source) to the pipeline shape. jdKeywords, if already extracted, double as
+    requiredSkills so coverage scoring has something to work with."""
+    return {
+        "jobId": str(doc["_id"]),
+        "title": doc.get("title", ""),
+        "company": doc.get("company", ""),
+        "tags": [],
+        "salary": "面議",
+        "deadline": "長期招募",
+        "requiredSkills": doc.get("jdKeywords") or [],
+        "jd": doc.get("jdSnapshot", ""),
+        "sourceUrl": "",
+    }
+
+
+def _object_id(value: str):
+    try:
+        return ObjectId(value)
+    except (InvalidId, TypeError):
+        return None
+
+
 def get_job(job_id: str) -> dict | None:
     """Resolve one job by id.
-    Order: DB by _id -> DB by sourceId (accepts the legacy `fit_<sourceId>` form) -> fixtures.
-    Any DB failure (no URI, unreachable, bad id) silently falls through to fixtures."""
+
+    Order:
+      1. `jobs` by _id
+      2. `jobs` by sourceId (accepts the legacy `fit_<sourceId>` form)
+      3. `job_targets` by _id (user-created target with a pasted JD)
+      4. fixtures
+
+    The returned jobId always echoes the id the caller used (contract: jobId in == jobId out).
+    Any DB failure (no URI, unreachable) silently falls through to fixtures."""
     try:
-        col = _jobs_collection()
+        db = _db()
     except Exception:
-        col = None
-    if col is not None:
+        db = None
+    if db is not None:
         try:
-            try:
-                doc = col.find_one({"_id": ObjectId(job_id)})
-            except InvalidId:
-                doc = None
+            oid = _object_id(job_id)
+            doc = db["jobs"].find_one({"_id": oid}) if oid is not None else None
             if doc is None:
                 source_id = job_id[4:] if job_id.startswith("fit_") else job_id
-                doc = col.find_one({"sourceId": source_id})
+                doc = db["jobs"].find_one({"sourceId": source_id})
             if doc is not None:
                 job = _from_db_doc(doc)
-                job["jobId"] = job_id   # echo the id the caller used (contract: jobId in == jobId out)
+                job["jobId"] = job_id
                 return job
+
+            if oid is not None:
+                tdoc = db["job_targets"].find_one({"_id": oid})
+                if tdoc is not None:
+                    job = _from_target_doc(tdoc)
+                    job["jobId"] = job_id
+                    return job
         except Exception:
             pass  # DB unreachable: fall through to fixtures
     return next((j for j in load_jobs() if j["jobId"] == job_id), None)
