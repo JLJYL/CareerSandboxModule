@@ -134,7 +134,14 @@ def get_job(job_id: str) -> dict | None:
             if oid is not None:
                 tdoc = db["job_targets"].find_one({"_id": oid})
                 if tdoc is not None:
-                    job = _from_target_doc(tdoc)
+                    # A target picked from the crawled list carries the job's sourceId:
+                    # prefer the full crawled record (conditionOther, requiredSkills) over
+                    # the snapshot. A typed-in target has no sourceId and uses jdSnapshot.
+                    src = tdoc.get("jobId") or ""
+                    jdoc = db["jobs"].find_one({"sourceId": src}) if src else None
+                    job = _from_db_doc(jdoc) if jdoc is not None else _from_target_doc(tdoc)
+                    if not job.get("requiredSkills") and tdoc.get("jdKeywords"):
+                        job["requiredSkills"] = tdoc["jdKeywords"]
                     job["jobId"] = job_id
                     return job
         except Exception:
