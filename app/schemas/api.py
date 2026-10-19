@@ -246,3 +246,33 @@ class ErrorBody(BaseModel):
 
 class ErrorResponse(BaseModel):
     error: ErrorBody
+
+
+# ---------------------------------------------------------------------------
+# 技能補強（POST /skills/reinforce）：對 missingSkills 配對課程與競賽資源
+# 契約見「交接文件四」第六節；欄位定案後不改（與前端的合約）。
+# ---------------------------------------------------------------------------
+
+class ReinforceRequest(BaseModel):
+    userId: str = "dev_user_001"
+    missingSkills: list[str] = Field(default_factory=list)  # 來自 fit/recommend 的缺口技能
+    school: str = ""                  # 本校代碼（providerKey）；空字串＝不做本校優先
+
+
+class ReinforceResourceOut(BaseModel):
+    resourceId: str
+    type: Literal["course", "competition"]
+    title: str
+    provider: str
+    url: str = ""
+    deadline: str = ""                # 競賽 YYYY-MM-DD；課程為空字串
+    note: str = ""                    # LLM 一句說明；無金鑰或違規防捏造時為空
+
+
+class ReinforceItemOut(BaseModel):
+    skill: str                        # 原樣回填 missingSkills 的該項（找不到資源也要回）
+    resources: list[ReinforceResourceOut] = Field(default_factory=list)
+
+
+class ReinforceResponse(BaseModel):
+    items: list[ReinforceItemOut] = Field(default_factory=list)

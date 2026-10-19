@@ -12,6 +12,7 @@ data/*
 !data/zhang/
 !data/zhang/*.jsonl
 !data/golden_skill_keys.json
+!data/competitions_manual.csv
 
 fixtures/samples/*
 !fixtures/samples/README.md
