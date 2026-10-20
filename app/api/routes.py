@@ -29,6 +29,7 @@ from app.schemas.api import (
     JobsFitRequest, JobFitOut, JobsFitAllResponse,
     MasterGenerateRequest, MasterGenerateResponse,
     OverviewRequest, OverviewResponse,
+    ReinforceRequest, ReinforceResponse,
 )
 
 router = APIRouter()
@@ -198,6 +199,19 @@ def resume_customize_full(req: CustomizeFullRequest):
     except LLMUnavailable:
         llm = None
     return customize_full(job, req.profile, req.experiences, normalizer=_get_normalizer(), llm=llm)
+
+
+@router.post("/skills/reinforce", response_model=ReinforceResponse)
+def skills_reinforce(req: ReinforceRequest) -> ReinforceResponse:
+    """技能補強:對 missingSkills 配對課程與競賽。配對確定性,LLM 只寫 note。
+    無金鑰 → note 全空照樣回 200(bge-m3 只在正規化器第二段,_get_normalizer 已處理)。"""
+    from app.pipeline.reinforce import reinforce
+    try:
+        llm = OpenAICompatibleLLM()
+    except LLMUnavailable:
+        llm = None
+    return reinforce(req.missingSkills, normalizer=_get_normalizer(),
+                     school=req.school, llm=llm)
 
 
 @router.post("/resume/overview", response_model=OverviewResponse)
