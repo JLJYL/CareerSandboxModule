@@ -64,7 +64,12 @@ def _from_db_doc(doc: dict) -> dict:
       deadline       <- not crawled; fixed 長期招募
     """
     jd = "\n".join(p for p in (doc.get("description"), doc.get("conditionOther")) if p)
+    # salaryRaw is a string on 104 / taiwanjobs but a dict on cake
     salary = doc.get("salaryRaw")
+    if isinstance(salary, dict):
+        unit = "時薪" if salary.get("type") == "per_hour" else "月薪"
+        rng = "~".join(str(v) for v in (salary.get("min"), salary.get("max")) if v)
+        salary = f"{unit} {rng}" if rng else None
     if not salary and (doc.get("salaryLow") or doc.get("salaryHigh")):
         salary = f"{doc.get('salaryLow') or ''}-{doc.get('salaryHigh') or ''}"
     return {
