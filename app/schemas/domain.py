@@ -62,3 +62,4 @@ class FitResult(BaseModel):
     match_score: int = Field(ge=0, le=100)
     covered_skills: list[str] = Field(default_factory=list)
     missing_skills: list[str] = Field(default_factory=list)
+    score_basis: str = "none"   # both / coverage_only / semantic_only / none（交接 §2；B 於 JobFitOut 露出 scoreBasis）
