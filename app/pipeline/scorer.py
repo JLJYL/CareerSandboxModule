@@ -7,12 +7,13 @@ score = 100 × ( w_cover × 覆蓋率 ＋ w_sem × 語意相似度 )，四捨五
   僅 raw_tag 字面相同（未正規化的自述），打 0.6 折；
   沒有就進 missing。covered/missing 用標準顯示名，對不上詞彙表保留原字串。
 
-語意：profile 技能名彙總文字 vs jd_text（無 jd_text 用 title＋required 頂）
-  的 embedding 餘弦，截斷至 [0,1]。
+語意：profile 經歷全文＋技能名 vs jd_text 的 embedding 餘弦，截斷至 [0,1]；
+  jd_text 空則不計語意（回 None，不再退回職稱——職稱太短會系統性虛高）。
 
-退化路徑（真實資料的常態）：
-  JD 無 required_skills（jobs_all 七成如此）→ 權重全給語意；
-  未注入 embedding → 權重全給覆蓋率；兩者皆無 → 0 分。
+退化路徑（真實資料的常態），以 score_basis 標示：
+  JD 無 required_skills（jobs 七成如此）→ 只剩語意，暫乘 w_cover 壓到同量級（semantic_only）；
+  未注入 embedding 或 jd_text 空 → 只剩覆蓋率（coverage_only）；兩者皆無 → 0 分（none）。
+  兩腿都在 → both。semantic_only 的壓分為暫定，待黃金集校準（§4）改線性對映。
 
 決定性保證：輸入排序固定、embedding provider 決定性 ⇒ 同 profile 同 job 同分。
 w_cover/w_sem 預設 0.65/0.35 與正規化門檻同屬待校準參數，W3 黃金測試集回歸定案。
@@ -64,27 +65,31 @@ class WeightedScorer:
         semantic = self._semantic(profile, job, required)
 
         if coverage is None and semantic is None:
-            score = 0
+            score, basis = 0, "none"
         elif coverage is None:
-            score = round(100 * semantic)
+            # §2：語意單腿暫以 w_cover 壓到和兩腿同量級（待 §4 校準定案線性對映後取代）
+            score, basis = round(100 * semantic * self._w_cover), "semantic_only"
         elif semantic is None:
-            score = round(100 * coverage)
+            score, basis = round(100 * coverage), "coverage_only"
         else:
             score = round(100 * (self._w_cover * coverage + self._w_sem * semantic)
                           / (self._w_cover + self._w_sem))
+            basis = "both"
         return FitResult(match_score=max(0, min(100, score)),
                          covered_skills=list(dict.fromkeys(covered)),
-                         missing_skills=list(dict.fromkeys(missing)))
+                         missing_skills=list(dict.fromkeys(missing)),
+                         score_basis=basis)
 
     # ------------------------------------------------ 內部
     def _semantic(self, profile: UserProfile, job: JobRequirement,
                   required: list[str]) -> float | None:
         if self._embedding is None:
             return None
-        jd = (job.jd_text or "").strip() or " ".join([job.title, *required]).strip()
+        jd = (job.jd_text or "").strip()                     # §1：jd_text 空就回 None，不退回職稱
         names = {self._normalizer.display_name(se.skill_id) for se in profile.skills}
         names |= {t for t in profile.raw_tags if t}
-        ptxt = " ".join(sorted(n for n in names if n))       # 排序固定 ⇒ 決定性
+        narrative = getattr(profile, "narrative", "") or ""  # §3：經歷全文；B 的欄位未合前退回空字串
+        ptxt = " ".join([narrative, *sorted(n for n in names if n)]).strip()  # 排序固定 ⇒ 決定性
         if not jd or not ptxt:
             return None
         va, vb = self._embedding.embed([ptxt, jd])

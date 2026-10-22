@@ -66,6 +66,12 @@ MERGE_DISPLAY_RAW = {
     "HTML5": "HTML", "HTML": "HTML", "CSS3": "CSS", "CSS": "CSS",
     "PowerPoint": "PowerPoint", "Excel": "Excel", "Word": "Word",
     "Outlook": "Outlook", "JavaScript": "JavaScript",
+    # 社群經營的各種寫法都掛到「社群媒體經營管理」底下（交接 10-22 §三；
+    # 否則 JD 的「社群媒體經營管理」對不上使用者的「社群媒體經營」）
+    "社群媒體經營": "社群媒體經營管理", "社群經營": "社群媒體經營管理",
+    "社群管理": "社群媒體經營管理", "社群經營管理": "社群媒體經營管理",
+    "IG 經營": "社群媒體經營管理", "IG社群推廣": "社群媒體經營管理",
+    "IG 社群推廣": "社群媒體經營管理",
 }
 MERGE_DISPLAY = {norm(k): v for k, v in MERGE_DISPLAY_RAW.items()}
 
