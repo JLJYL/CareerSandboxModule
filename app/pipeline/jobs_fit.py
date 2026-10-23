@@ -183,7 +183,8 @@ def fit_one(profile: UserProfile, job: dict, scorer) -> JobFitOut:
         jobId=job["jobId"], title=job["title"], company=job["company"],
         tags=job.get("tags", []), salary=job["salary"], deadline=job["deadline"],
         matchScore=fit.match_score, styleTag=style_tag(job.get("requiredSkills", []), job.get("jd", "")),
-        requiredSkills=job.get("requiredSkills", []))
+        requiredSkills=job.get("requiredSkills", []),
+        scoreBasis=getattr(fit, "score_basis", ""))   # set by A's scorer branch; "" until merged
 
 
 def fit_all(profile: UserProfile, scorer, jobs: list[dict] | None = None) -> list[JobFitOut]:

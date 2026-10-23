@@ -1,12 +1,26 @@
 """FastAPI 進入點。統一錯誤格式:任何未攔截例外/驗證錯誤都以
 {"error": {"code", "message"}} 出門——前端靠這個形狀(或非 2xx/連線失敗)觸發 Mock fallback。"""
+import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.api.routes import router
+from app.api.routes import _get_embedding, router
 
-app = FastAPI(title="CareerSandbox AI Service", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """Load bge-m3 at startup so a broken model cache shows up in the terminal
+    immediately (as a WARNING line) instead of as silently degraded scores later.
+    Set AI_SKIP_WARMUP=1 to keep the lazy behaviour (CI, quick local runs)."""
+    if os.getenv("AI_SKIP_WARMUP") != "1":
+        _get_embedding()
+    yield
+
+
+app = FastAPI(title="CareerSandbox AI Service", version="0.1.0", lifespan=lifespan)
 app.include_router(router)
 
 

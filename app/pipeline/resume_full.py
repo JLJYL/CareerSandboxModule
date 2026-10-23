@@ -33,10 +33,11 @@ def order_experiences(exps: list[ExperienceIn], items) -> list[ResumeExperienceO
     """items 與 exps 一對一同序(B1 保證);依契約排序規則產出顯示順序。"""
     rows = [(i, e, it) for i, (e, it) in enumerate(zip(exps, items))]
     strong = sorted((r for r in rows if r[2].highlighted),
-                    key=lambda r: (-len(r[2].matchedKeywords), r[0]))
+                    key=lambda r: (-(len(r[2].matchedKeywords) + len(r[2].matchedTags)), r[0]))
     weak = [r for r in rows if not r[2].highlighted]
-    return [ResumeExperienceOut(title=e.title, timeRange=e.timeRange, text=it.text,
-                                matchedKeywords=list(it.matchedKeywords))
+    return [ResumeExperienceOut(id=e.id, title=e.title, timeRange=e.timeRange, text=it.text,
+                                matchedKeywords=list(it.matchedKeywords),
+                                matchedTags=list(it.matchedTags))
             for _, e, it in strong + weak]
 
 

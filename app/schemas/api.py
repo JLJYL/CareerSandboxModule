@@ -117,6 +117,10 @@ class JobFitOut(BaseModel):
     matchScore: int = Field(ge=0, le=100)
     styleTag: str                     # 例："數據導向型"、"硬實力強"、"溝通導向型"
     requiredSkills: list[str] = Field(default_factory=list)
+    # What the score was computed from (2026-10-22): "both" | "coverage_only" |
+    # "semantic_only" | "none". 75% of crawled jobs have no requiredSkills, so the
+    # frontend should label semantic_only scores as an estimate from the JD text.
+    scoreBasis: str = ""
 
 
 class JobsFitAllResponse(BaseModel):
@@ -136,9 +140,11 @@ class CustomizeRequest(BaseModel):
 
 
 class CustomizedItemOut(BaseModel):
+    id: str = ""                      # 輸入 ExperienceIn.id 原樣帶回(2026-10-22),前端不再靠順序對應
     text: str                         # 改寫原則：只重排與強調母版既有事實，不捏造
-    matchedKeywords: list[str] = Field(default_factory=list)
-    highlighted: bool                 # true=強化, false=弱化
+    matchedKeywords: list[str] = Field(default_factory=list)   # 真的出現在 text 裡的關鍵字
+    matchedTags: list[str] = Field(default_factory=list)       # 只靠 tags 命中、text 裡沒有的關鍵字
+    highlighted: bool                 # true=強化, false=弱化(依 matchedKeywords+matchedTags 總數判定)
 
 
 class CustomizeResponse(BaseModel):
@@ -191,10 +197,12 @@ class ResumeSkillsOut(BaseModel):
 
 
 class ResumeExperienceOut(BaseModel):
+    id: str = ""                      # 輸入 ExperienceIn.id 原樣帶回(2026-10-22)
     title: str
     timeRange: str
     text: str                         # 改寫後全文;弱化條為壓縮句,一律包含
-    matchedKeywords: list[str] = Field(default_factory=list)
+    matchedKeywords: list[str] = Field(default_factory=list)   # 真的出現在 text 裡的關鍵字
+    matchedTags: list[str] = Field(default_factory=list)
 
 
 class CustomizeFullResponse(BaseModel):

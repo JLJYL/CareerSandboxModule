@@ -10,6 +10,7 @@ import json
 import re
 
 from app.pipeline.textrules import sanitize_display_text
+from app.pipeline.vocab import load_vocabulary, norm_key
 from app.prompts.customize import RETRY_SUFFIX, SYSTEM_PROMPT, build_user_prompt
 from app.schemas.api import CustomizedItemOut, CustomizeRequest, CustomizeResponse, ExperienceIn
 
@@ -17,6 +18,15 @@ _HIGHLIGHT_MIN = 2          # 命中 ≥2 個關鍵字才標強化(依 golden �
 _NUM_RE = re.compile(r"\d+(?:\.\d+)?")
 # 評價詞防線:prompt 規則與反例示範連敗四輪後降到機械層——原文沒有就是不准寫。
 _HYPE_WORDS = ("成功", "精通", "出色", "高效", "優異", "大幅", "卓越", "完美")
+# Proper-noun guard (4th mechanical check, 2026-10-22): the LLM upgraded "商業競賽" to
+# "全國大專商業個案大賽" in a real run. Any organisation / competition name in the rewrite
+# must already exist in the source. We key on name suffixes and check the suffix plus the
+# two preceding characters against the source text, so ordinary rephrasing passes while a
+# newly invented name ("個案大賽", "中山大學") is caught. "系統/平台" are deliberately not
+# suffixes: "中小企業貸款系統" is a legitimate rephrase of "幫助中小企業貸款的系統".
+_NAME_SUFFIXES = ("大賽", "競賽", "比賽", "盃", "杯", "公司", "銀行", "大學", "學院",
+                  "協會", "基金會", "集團", "部門", "實驗室")
+_NAME_RE = re.compile(r"[\u4e00-\u9fffA-Za-z0-9]{0,2}(?:" + "|".join(_NAME_SUFFIXES) + ")")
 
 
 def _zh_period(t: str) -> str:
@@ -81,12 +91,33 @@ def customize(job: dict, req_experiences: list[ExperienceIn], *, normalizer,
     if llm is not None:
         texts = _llm_rewrite(llm, jd_keywords, items, texts)
 
-    return CustomizeResponse(
-        jdKeywords=jd_keywords, coveredKeywords=covered,
-        items=[CustomizedItemOut(text=sanitize_display_text(_zh_period(t)),
-                                 matchedKeywords=it["matched"],
-                                 highlighted=it["highlighted"])
-               for t, it in zip(texts, items)])
+    out = []
+    for exp, t, it in zip(req_experiences, texts, items):
+        text = sanitize_display_text(_zh_period(t))
+        in_text, in_tags = split_matched(it["matched"], text, kw_ids, normalizer)
+        out.append(CustomizedItemOut(id=exp.id, text=text, matchedKeywords=in_text,
+                                     matchedTags=in_tags, highlighted=it["highlighted"]))
+    return CustomizeResponse(jdKeywords=jd_keywords, coveredKeywords=covered, items=out)
+
+
+def split_matched(matched: list[str], text: str, kw_ids: dict, normalizer) -> tuple[list[str], list[str]]:
+    """The strong/weak decision counts hits in title + description + tags. For display,
+    only keywords that actually appear in the final text go to matchedKeywords (so the
+    App never highlights "Excel" on a sentence without it); hits that came from tags
+    alone go to matchedTags. A keyword counts as "in text" when the text contains the
+    keyword, its canonical display name, or any alias of the same skill id."""
+    in_text, in_tags = [], []
+    text_key = norm_key(text)
+    for kw in matched:
+        forms = {kw}
+        cid = kw_ids.get(kw)
+        if cid and normalizer is not None:
+            skill = next((sk for sk in load_vocabulary() if sk.skill_id == cid), None)
+            if skill:
+                forms |= {skill.name_zh, skill.name_en, *skill.aliases}
+        hit = any(norm_key(f) and norm_key(f) in text_key for f in forms)
+        (in_text if hit else in_tags).append(kw)
+    return in_text, in_tags
 
 
 def _violations(cands: list[str], items: list[dict]) -> list[str]:
@@ -105,6 +136,21 @@ def _violations(cands: list[str], items: list[dict]) -> list[str]:
         hype = [w for w in _HYPE_WORDS if w in t and w not in src]
         if hype:
             out.append(f"第 {i} 條出現原文沒有的評價詞 {hype}")
+        names = invented_names(t, src)
+        if names:
+            out.append(f"第 {i} 條出現原文沒有的機構或賽事名稱 {names}")
+    return out
+
+
+def invented_names(candidate: str, source: str) -> list[str]:
+    """Names (suffix + up to two preceding chars) present in the candidate but absent
+    from the source. Comparison is on norm_key so width/case differences do not count."""
+    src_key = norm_key(source)
+    out = []
+    for m in _NAME_RE.finditer(candidate):
+        frag = norm_key(m.group(0))
+        if frag and frag not in src_key and m.group(0) not in out:
+            out.append(m.group(0))
     return out
 
 

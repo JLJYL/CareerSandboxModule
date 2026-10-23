@@ -12,6 +12,7 @@
 /jobs/fit-all 仍走 fixtures（對整批爬蟲職缺計分成本過高，另案處理）。
 """
 import json
+import logging
 from pathlib import Path
 
 from fastapi import APIRouter
@@ -41,7 +42,35 @@ def _golden(name: str) -> dict:
     return json.loads((_GOLDEN / f"{name}.json").read_text(encoding="utf-8"))
 
 
+_log = logging.getLogger("careersandbox.ai")
+
 _NORMALIZER: VocabNormalizer | None = None
+_EMBEDDING = None            # shared bge-m3 instance (normalizer + scorer); None = degraded
+_EMBEDDING_ERROR: str | None = None   # why the embedding failed to load, for /health
+_EMBEDDING_TRIED = False
+
+
+def _get_embedding():
+    """Lazy singleton for bge-m3. Failing to load is a silent degradation (alias-only
+    normalizer, coverage-only scorer), which cost the backend a day to diagnose on
+    2026-10-21 — so the failure is now logged loudly once and exposed on /health."""
+    global _EMBEDDING, _EMBEDDING_ERROR, _EMBEDDING_TRIED
+    if _EMBEDDING_TRIED:
+        return _EMBEDDING
+    _EMBEDDING_TRIED = True
+    try:
+        from app.providers.embeddings import BgeM3Embedding
+        _EMBEDDING = BgeM3Embedding()
+        _log.info("bge-m3 embedding loaded; normalizer and scorer run with the semantic leg.")
+    except Exception as e:  # noqa: BLE001 - any failure degrades, but must be visible
+        _EMBEDDING = None
+        _EMBEDDING_ERROR = f"{type(e).__name__}: {e}"
+        _log.warning(
+            "bge-m3 embedding NOT loaded (%s). Running DEGRADED: normalizer is alias-only, "
+            "scorer is coverage-only, semantic similarity is skipped. "
+            "Check torch/transformers and the HF cache (snapshots/*/pytorch_model.bin must be ~2.2GB).",
+            _EMBEDDING_ERROR)
+    return _EMBEDDING
 
 
 def _get_normalizer() -> VocabNormalizer:
@@ -49,11 +78,8 @@ def _get_normalizer() -> VocabNormalizer:
     沒有(CI、乾淨環境)→ alias-only 降級——同一個介面,能力降級不缺席。"""
     global _NORMALIZER
     if _NORMALIZER is None:
-        try:
-            from app.providers.embeddings import BgeM3Embedding
-            _NORMALIZER = VocabNormalizer(embedding=BgeM3Embedding())
-        except Exception:
-            _NORMALIZER = VocabNormalizer()
+        emb = _get_embedding()
+        _NORMALIZER = VocabNormalizer(embedding=emb) if emb is not None else VocabNormalizer()
     return _NORMALIZER
 
 
@@ -66,11 +92,8 @@ def _get_scorer():
     if _SCORER is None:
         from app.pipeline.scorer import WeightedScorer
         norm = _get_normalizer()
-        try:
-            from app.providers.embeddings import BgeM3Embedding
-            _SCORER = WeightedScorer(norm, embedding=BgeM3Embedding())
-        except Exception:
-            _SCORER = WeightedScorer(norm)
+        emb = _get_embedding()
+        _SCORER = WeightedScorer(norm, embedding=emb) if emb is not None else WeightedScorer(norm)
     return _SCORER
 
 
@@ -119,16 +142,17 @@ def master_generate(req: MasterGenerateRequest):
 
 def _build_reco_deps():
     """真檢索+真尺(要 torch+模型);建不起來(CI/乾淨機)→ None → 端點退 golden。"""
+    emb = _get_embedding()          # shared instance: never load the 2.2GB model twice
+    if emb is None:
+        return None
     try:
-        from app.pipeline.scorer import WeightedScorer
-        from app.providers.embeddings import BgeM3Embedding
         from app.retrieval.vector_retriever import VectorRetriever
-        emb = BgeM3Embedding()
         norm = _get_normalizer()
         return (VectorRetriever(embedding=emb,
                                 persist_path=Path("data/kb_index.json")),
-                WeightedScorer(norm, embedding=emb), norm)
-    except Exception:
+                _get_scorer(), norm)
+    except Exception as e:  # noqa: BLE001
+        _log.warning("career/recommend retriever unavailable (%s); endpoint returns golden.", e)
         return None
 
 
@@ -208,5 +232,14 @@ def resume_overview(req: OverviewRequest) -> OverviewResponse:
 
 
 @router.get("/health")
-def health() -> dict:
-    return {"status": "ok"}
+def health(deep: bool = False) -> dict:
+    """Liveness plus the embedding state. `embedding` is true/false once the model has
+    been tried, null if nothing has triggered the lazy load yet; `?deep=1` forces the
+    load (first call may take 10-30 s) so a deploy check can confirm the semantic leg."""
+    if deep:
+        _get_embedding()
+    loaded = None if not _EMBEDDING_TRIED else (_EMBEDDING is not None)
+    out: dict = {"status": "ok", "embedding": loaded}
+    if _EMBEDDING_ERROR:
+        out["embeddingError"] = _EMBEDDING_ERROR
+    return out
