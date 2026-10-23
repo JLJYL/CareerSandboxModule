@@ -7,13 +7,18 @@ score = 100 × ( w_cover × 覆蓋率 ＋ w_sem × 語意相似度 )，四捨五
   僅 raw_tag 字面相同（未正規化的自述），打 0.6 折；
   沒有就進 missing。covered/missing 用標準顯示名，對不上詞彙表保留原字串。
 
-語意：profile 經歷全文＋技能名 vs jd_text 的 embedding 餘弦，截斷至 [0,1]；
-  jd_text 空則不計語意（回 None，不再退回職稱——職稱太短會系統性虛高）。
+語意：profile 經歷全文＋技能名 vs jd_text 的 embedding 餘弦，再過線性對映
+  f(c)=clamp((c−SEM_LO)/(SEM_HI−SEM_LO), 0, 1)。§4 黃金集校準發現 bge-m3 中文餘弦被
+  壓在窄帶（相關對 0.33–0.56、離題對 0.28–0.47、滿分對 0.52–0.63，三帶重疊），原始
+  餘弦直接當分會給每個人 ~0.35 的虛高地板；SEM_LO/SEM_HI 以「離題地板」與「滿分天花板」
+  為錨把它攤開。jd_text 空則不計語意（回 None，不再退回職稱——職稱太短會系統性虛高）。
 
 退化路徑（真實資料的常態），以 score_basis 標示：
-  JD 無 required_skills（jobs 七成如此）→ 只剩語意，暫乘 w_cover 壓到同量級（semantic_only）；
+  JD 無 required_skills（jobs 七成如此）→ 只剩語意，乘 w_cover 收斂（semantic_only）；
   未注入 embedding 或 jd_text 空 → 只剩覆蓋率（coverage_only）；兩者皆無 → 0 分（none）。
-  兩腿都在 → both。semantic_only 的壓分為暫定，待黃金集校準（§4）改線性對映。
+  兩腿都在 → both。§4 定案：semantic_only 的壓分改為「先線性對映、再保留 w_cover 上限」
+  ——對映除虛高地板、上限反映語意腿在短經歷上近乎雜訊（與覆蓋率相關 −0.15~−0.26），
+  證據與取捨見 docs/calibration_report.md。
 
 決定性保證：輸入排序固定、embedding provider 決定性 ⇒ 同 profile 同 job 同分。
 w_cover/w_sem 預設 0.65/0.35 與正規化門檻同屬待校準參數，W3 黃金測試集回歸定案。
@@ -26,6 +31,10 @@ from app.providers.embeddings import EmbeddingProvider
 from app.schemas.domain import FitResult, JobRequirement, UserProfile
 
 RAW_TAG_DISCOUNT = 0.6  # 未經正規化驗證的自述標籤折扣
+# §4 語意對映錨點（docs/calibration_report.md）：bge-m3 中文餘弦離題地板≈0.35、滿分天花板≈0.60。
+# 原始餘弦被壓在 0.28–0.63 的窄帶，直接當分會虛高；以錨點線性攤開到 [0,1]。
+SEM_LO = 0.35
+SEM_HI = 0.60
 
 
 class WeightedScorer:
@@ -67,12 +76,13 @@ class WeightedScorer:
         if coverage is None and semantic is None:
             score, basis = 0, "none"
         elif coverage is None:
-            # §2：語意單腿暫以 w_cover 壓到和兩腿同量級（待 §4 校準定案線性對映後取代）
-            score, basis = round(100 * semantic * self._w_cover), "semantic_only"
+            # §4：語意單腿先線性對映（除虛高地板），再乘 w_cover 收斂（語意腿證據薄，見校準報告）
+            score, basis = round(100 * self._map_semantic(semantic) * self._w_cover), "semantic_only"
         elif semantic is None:
             score, basis = round(100 * coverage), "coverage_only"
         else:
-            score = round(100 * (self._w_cover * coverage + self._w_sem * semantic)
+            sem = self._map_semantic(semantic)   # §4：線性對映後再加權，避免餘弦窄帶虛高
+            score = round(100 * (self._w_cover * coverage + self._w_sem * sem)
                           / (self._w_cover + self._w_sem))
             basis = "both"
         return FitResult(match_score=max(0, min(100, score)),
@@ -81,6 +91,12 @@ class WeightedScorer:
                          score_basis=basis)
 
     # ------------------------------------------------ 內部
+    @staticmethod
+    def _map_semantic(sim: float) -> float:
+        """§4：原始餘弦 → [0,1] 線性對映。把 bge-m3 的窄餘弦帶攤開、除去 ~0.35 虛高地板；
+        SEM_LO 以下→0（離題），SEM_HI 以上→1（滿分對映）。錨點來源見 docs/calibration_report.md。"""
+        return max(0.0, min(1.0, (sim - SEM_LO) / (SEM_HI - SEM_LO)))
+
     def _semantic(self, profile: UserProfile, job: JobRequirement,
                   required: list[str]) -> float | None:
         if self._embedding is None:
