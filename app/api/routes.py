@@ -213,9 +213,9 @@ def resume_customize(req: CustomizeRequest):
              responses={404: {"description": "jobId 不存在,統一錯誤格式"}})
 def resume_customize_full(req: CustomizeFullRequest):
     """契約 v1:回傳組裝完成、依顯示順序排列的客製履歷,前端由上往下渲染即可。"""
-    from app.pipeline.jobs_fit import load_jobs
+    from app.pipeline.jobs_fit import get_job
     from app.pipeline.resume_full import customize_full
-    job = next((j for j in load_jobs() if j["jobId"] == req.jobId), None)
+    job = get_job(req.jobId)              # DB (_id / sourceId) → fixtures
     if job is None:
         return _error(404, "job_not_found", f"查無職缺 {req.jobId}")
     try:
@@ -223,6 +223,19 @@ def resume_customize_full(req: CustomizeFullRequest):
     except LLMUnavailable:
         llm = None
     return customize_full(job, req.profile, req.experiences, normalizer=_get_normalizer(), llm=llm)
+
+
+@router.post("/skills/reinforce", response_model=ReinforceResponse)
+def skills_reinforce(req: ReinforceRequest) -> ReinforceResponse:
+    """技能補強:對 missingSkills 配對課程與競賽。配對確定性,LLM 只寫 note。
+    無金鑰 → note 全空照樣回 200(bge-m3 只在正規化器第二段,_get_normalizer 已處理)。"""
+    from app.pipeline.reinforce import reinforce
+    try:
+        llm = OpenAICompatibleLLM()
+    except LLMUnavailable:
+        llm = None
+    return reinforce(req.missingSkills, normalizer=_get_normalizer(),
+                     school=req.school, llm=llm)
 
 
 @router.post("/resume/overview", response_model=OverviewResponse)
