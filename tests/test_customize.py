@@ -83,3 +83,64 @@ def test_halfwidth_period_normalized_to_fullwidth():
         {"text": "經營社團 IG 累積 1200 追蹤."}]}, ensure_ascii=False)
     r = customize(JOB, EXPS, normalizer=NORM, llm=FakeLLM(good))
     assert r.items[0].text.endswith("。") and r.items[1].text.endswith("。")
+
+
+# ---- 2026-10-22 backend report (Yuna): four customize issues ----------------------------
+
+def test_items_carry_experience_id():
+    """Issue 4: items must echo the input id so the App stops pairing by position."""
+    r = customize(JOB, EXPS, normalizer=NORM, llm=None)
+    assert [it.id for it in r.items] == ["e1", "e2"]
+
+
+def test_invented_competition_name_falls_back_to_original():
+    """Issue 1: '商業競賽' was upgraded to '全國大專商業個案大賽' in a real run.
+    The proper-noun guard must reject it on both attempts and ship the original."""
+    job = {"jobId": "fit_z", "title": "理財專員", "requiredSkills": [], "jd": ""}
+    exps = [ExperienceIn(id="e1", title="商業競賽提案經歷", category="競賽", timeRange="",
+                         description="組員。提案關於幫助中小企業貸款的系統，針對痛點設計功能。進入決賽，最後拿到了優選",
+                         tags=[])]
+    bad = json.dumps({"items": [
+        {"text": "全國大專商業個案大賽組員,提案幫助中小企業貸款的系統,進入決賽獲得優選。"}]},
+        ensure_ascii=False)
+    r = customize(job, exps, normalizer=NORM, llm=SeqLLM([bad, bad]))
+    assert r.items[0].text == exps[0].description
+
+
+def test_legitimate_rephrase_of_system_passes_name_guard():
+    """'幫助中小企業貸款的系統' → '中小企業貸款系統' is a rephrase, not a new name."""
+    job = {"jobId": "fit_z", "title": "理財專員", "requiredSkills": [], "jd": ""}
+    exps = [ExperienceIn(id="e1", title="商業競賽提案經歷", category="競賽", timeRange="",
+                         description="組員。提案關於幫助中小企業貸款的系統，針對痛點設計功能。進入決賽，最後拿到了優選",
+                         tags=[])]
+    ok = json.dumps({"items": [
+        {"text": "商業競賽組員,提案中小企業貸款系統並針對痛點設計功能,進入決賽獲得優選。"}]},
+        ensure_ascii=False)
+    r = customize(job, exps, normalizer=NORM, llm=FakeLLM(ok))
+    assert r.items[0].text.startswith("商業競賽組員")
+
+
+def test_tag_only_hit_goes_to_matched_tags_not_keywords():
+    """Issue 2: a keyword matched through tags but absent from the final text must not
+    be reported as matchedKeywords (the App highlights those in the sentence)."""
+    exps = [ExperienceIn(id="e1", title="資料庫系統課程專題", category="學業", timeRange="",
+                         description="運用 PostgreSQL 與 React 進行全端開發。",
+                         tags=["SQL", "全端", "Excel"])]
+    r = customize(JOB, exps, normalizer=NORM, llm=None)
+    it = r.items[0]
+    assert it.highlighted                         # decision still counts tag hits
+    assert "Excel" in it.matchedTags and "Excel" not in it.matchedKeywords
+    assert set(it.matchedKeywords) | set(it.matchedTags) == {"SQL", "Excel"}
+
+
+def test_alias_in_text_counts_as_keyword_hit():
+    """Keyword '報表彙整與管理' present in text via a vocabulary alias counts as in-text."""
+    from app.pipeline.vocab import lookup
+    skill = lookup("報表彙整與管理")
+    if skill is None or not skill.aliases:
+        return                                     # vocabulary without aliases: nothing to test
+    alias = skill.aliases[0]
+    exps = [ExperienceIn(id="e1", title="實習", category="工作", timeRange="",
+                         description=f"每週負責{alias}。", tags=["報表彙整與管理"])]
+    r = customize(JOB, exps, normalizer=NORM, llm=None)
+    assert "報表彙整與管理" in r.items[0].matchedKeywords

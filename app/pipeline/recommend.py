@@ -9,8 +9,9 @@ from pathlib import Path
 
 from app.pipeline.textrules import sanitize_display_text
 from app.prompts.recommend import RETRY_SUFFIX, SYSTEM_PROMPT, build_rank_prompt
+from app.pipeline.vocab import alias_index, norm_key
 from app.schemas.api import CareerRecOut, ExperienceIn
-from app.schemas.domain import JobRequirement, SkillEvidence, UserProfile
+from app.schemas.domain import CanonicalSkill, JobRequirement, SkillEvidence, UserProfile
 
 _CATALOG_PATH = Path(__file__).resolve().parents[2] / "fixtures" / "careers" / "careers_v1.json"
 
@@ -19,23 +20,55 @@ def load_catalog(path: Path = _CATALOG_PATH) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def scan_skills_in_text(text: str, min_len: int = 2) -> list[CanonicalSkill]:
+    """Deterministic vocabulary scan: every alias / canonical name that appears verbatim
+    (after norm_key) in the text. Used as a stand-in for tags when an experience has none
+    (chat-created experiences are stored without tags). No LLM, no embedding, so the
+    result is reproducible and costs nothing. Aliases shorter than min_len are skipped
+    to avoid single-character false hits."""
+    key = norm_key(text)
+    if not key:
+        return []
+    seen: dict[str, CanonicalSkill] = {}
+    for alias_key, skill in alias_index().items():
+        if len(alias_key) >= min_len and alias_key in key:
+            seen.setdefault(skill.skill_id, skill)
+    return list(seen.values())
+
+
 def profile_from_experiences(user_id: str, experiences: list[ExperienceIn],
                              normalizer) -> UserProfile:
-    """已結構化的母版經歷 → 輪廓(tags 走正規化;對不上進殘留區)。"""
+    """已結構化的母版經歷 → 輪廓(tags 走正規化;對不上進殘留區)。
+
+    Experiences without tags fall back to a vocabulary scan of title + description, so a
+    user whose experiences were all created through the chat flow (no tags) still has
+    skills for the coverage leg. narrative carries the full text for the semantic leg."""
     skills: dict[str, SkillEvidence] = {}
     residual: list[str] = []
+    narrative_parts: list[str] = []
     for exp in experiences:
-        for raw in exp.tags:
-            canon = normalizer.normalize(raw) if normalizer else None
-            if canon is None:
-                if raw not in residual:
-                    residual.append(raw)
-            else:
+        text = f"{exp.title} {exp.description}".strip()
+        if text:
+            narrative_parts.append(text)
+        if exp.tags:
+            for raw in exp.tags:
+                canon = normalizer.normalize(raw) if normalizer else None
+                if canon is None:
+                    if raw not in residual:
+                        residual.append(raw)
+                else:
+                    ev = skills.setdefault(canon.skill_id,
+                                           SkillEvidence(skill_id=canon.skill_id))
+                    ev.evidence.append(exp.title)
+                    ev.weight = float(len(ev.evidence))
+        else:
+            for canon in scan_skills_in_text(text):
                 ev = skills.setdefault(canon.skill_id,
                                        SkillEvidence(skill_id=canon.skill_id))
-                ev.evidence.append(exp.title)
+                ev.evidence.append(f"scan:{exp.title}")
                 ev.weight = float(len(ev.evidence))
-    return UserProfile(user_id=user_id, skills=list(skills.values()), raw_tags=residual)
+    return UserProfile(user_id=user_id, skills=list(skills.values()), raw_tags=residual,
+                       narrative=" ".join(narrative_parts))
 
 
 def _usable_chunks(chunks) -> list:

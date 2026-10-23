@@ -41,3 +41,30 @@ def test_fake_retriever_wires():
     from app.retrieval.fake_retriever import FakeRetriever
     chunks = FakeRetriever().search("我對 SQL 和報表有興趣", k=3)
     assert chunks and chunks[0].entry.id.startswith("kb_")
+
+
+def test_health_reports_embedding_state():
+    """2026-10-22: /health exposes whether bge-m3 loaded so a degraded deploy is visible.
+    ?deep=1 forces the lazy load; in CI (no torch) that yields embedding=false plus the error."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+    c = TestClient(app)
+    base = c.get("/health").json()
+    assert base["status"] == "ok" and "embedding" in base
+    deep = c.get("/health?deep=1").json()
+    assert deep["embedding"] in (True, False)
+    if deep["embedding"] is False:
+        assert deep["embeddingError"]
+
+
+def test_job_fit_carries_score_basis_and_customize_items_carry_ids():
+    from fastapi.testclient import TestClient
+    from app.main import app
+    c = TestClient(app)
+    exps = [{"id": "x1", "title": "電商實習", "category": "工作", "timeRange": "",
+             "description": "每週用 SQL 跟 Excel 做週報", "tags": ["SQL", "Excel"]}]
+    fit = c.post("/jobs/fit_93bo9/fit", json={"userId": "u", "experiences": exps}).json()
+    assert "scoreBasis" in fit
+    cz = c.post("/resume/customize", json={"userId": "u", "jobId": "fit_93bo9",
+                                           "experiences": exps}).json()
+    assert cz["items"][0]["id"] == "x1" and "matchedTags" in cz["items"][0]

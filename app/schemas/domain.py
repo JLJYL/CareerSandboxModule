@@ -34,6 +34,10 @@ class UserProfile(BaseModel):
     user_id: str
     skills: list[SkillEvidence] = Field(default_factory=list)
     raw_tags: list[str] = Field(default_factory=list)  # 尚無法正規化的殘留標籤
+    # Full text of all experiences (title + description), in master order. The semantic
+    # leg of the scorer reads this so users whose experiences carry no tags still get a
+    # similarity score (handover 10-22 §3). Empty string when no experiences were given.
+    narrative: str = ""
 
 
 class KBEntry(BaseModel):

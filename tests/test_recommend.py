@@ -99,3 +99,36 @@ def test_rank_prompt_shows_covered_skills():
              "covered": ["Excel", "Word"], "missing": ["Outlook"], "snippets": []}]
     p = build_rank_prompt("我喜歡整理文件", ["Excel", "Word"], cand)
     assert "命中:Excel、Word" in p and "尚缺:Outlook" in p
+
+
+# ---- 2026-10-22: profile from experiences without tags ----------------------------------
+
+def test_profile_without_tags_scans_description_and_fills_narrative():
+    """Issue 5 (backend report): chat-created experiences carry no tags. The profile must
+    still get skills (vocabulary scan of title + description) and a narrative for the
+    semantic leg, so such users do not score 0 against every job."""
+    from app.pipeline.normalize import VocabNormalizer
+    from app.pipeline.recommend import profile_from_experiences
+    from app.schemas.api import ExperienceIn
+    norm = VocabNormalizer()
+    exps = [ExperienceIn(id="e1", title="電商公司資料分析實習", category="工作", timeRange="",
+                         description="協助業務團隊整理銷售數據。運用 SQL + Excel 穩定產出業務週報。",
+                         tags=[])]
+    p = profile_from_experiences("u", exps, norm)
+    names = {norm.display_name(s.skill_id) for s in p.skills}
+    assert {"SQL", "Excel"} <= names
+    assert all(ev.startswith("scan:") for s in p.skills for ev in s.evidence)
+    assert "業務週報" in p.narrative and "電商公司資料分析實習" in p.narrative
+
+
+def test_profile_with_tags_does_not_scan():
+    """Tagged experiences keep the original behaviour: tags are the only skill source."""
+    from app.pipeline.normalize import VocabNormalizer
+    from app.pipeline.recommend import profile_from_experiences
+    from app.schemas.api import ExperienceIn
+    norm = VocabNormalizer()
+    exps = [ExperienceIn(id="e1", title="實習", category="工作", timeRange="",
+                         description="運用 SQL + Excel 產出週報。", tags=["Python"])]
+    p = profile_from_experiences("u", exps, norm)
+    names = {norm.display_name(s.skill_id) for s in p.skills}
+    assert "SQL" not in names and "Excel" not in names

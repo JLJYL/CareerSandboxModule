@@ -21,7 +21,9 @@ def build_profile(user_id: str, drafts: list[ExtractedExperience],
                 ev.evidence.append(d.source_quote)
                 ev.weight = float(len(ev.evidence))
     raw_tags = [s for s, _ in residual.most_common()]
-    return UserProfile(user_id=user_id, skills=list(skills.values()), raw_tags=raw_tags)
+    narrative = " ".join(f"{d.title} {d.description}".strip() for d in drafts)
+    return UserProfile(user_id=user_id, skills=list(skills.values()), raw_tags=raw_tags,
+                       narrative=narrative)
 
 
 def aggregate_display_skills(profile: UserProfile, name_of=None) -> list[str]:
