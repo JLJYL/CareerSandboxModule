@@ -3,8 +3,21 @@
 受限選擇版：LLM 直接從詞彙表 name_zh 挑，輸出保證對齊，無正規化殘留。
 
 - 競賽總數：65
-- 標到技能：29
-- 標不到（純建築／藝術／數學等，與職能詞表關聯弱，屬正常）：36
+- 標到技能：27（2026-10-24 後端覆核後；原 29，詳見下方修正）
+- 標不到（純建築／藝術／數學等，與職能詞表關聯弱，屬正常）：38（原 36）
+
+## 2026-10-24 後端回報後的覆核修正
+
+Yuna 匯入後對照 tags 挑出 4 筆可疑標註，模型組覆核。資料無 description 欄，標註本就只能憑
+title／category／tags；覆核原則：技能須有 tag 或標題訊號支持，平台分類字（DevPost 的
+Communication、AWS 產品名）不算技能訊號，泛詞（Design）無乾淨詞條對應則留空。
+
+| 序號 | sourceId | 原 skills | 改為 | 理由 |
+|---|---|---|---|---|
+| c8 | devpost-31052 | 溝通能力, 機器學習 | 機器學習 | Communication 是 AWS CDS 產品名，非軟技能 |
+| c22 | devpost-31666 | 溝通能力, 機器學習 | 資訊安全, 機器學習 | Communication 是 DevPost 分類；補原本漏標的資訊安全（Cybersecurity tag＋標題 systems security） |
+| c33 | devpost-30500 | 機器學習 | （空） | tags（Beginner Friendly／Low-No Code／Open Ended）無任何 ML 訊號，原標屬臆測 |
+| c60 | devpost-31715 | 設計導入製造執行系統(MES) | （空） | MES 為製造術語，與教育類黑客松無關；Design tag 太泛、無乾淨具體設計詞條可定錨 |
 
 ## 標不到技能的競賽
 
@@ -44,3 +57,5 @@
 - 紐約高瀑布河濱市場New York High Falls Riverfront Market國際建築設計競賽
 - 2026《協易盃》大手攜小手~伺服沖壓創新應用競賽
 - The Quiet Tower 寂靜之塔國際建築設計競賽
+- DSH Hacks V2 ($100k+ in prizes)（2026-10-24 覆核改判：原標 機器學習，無 tag 支持）
+- The Arcticathon（2026-10-24 覆核改判：原標 MES，誤標）
