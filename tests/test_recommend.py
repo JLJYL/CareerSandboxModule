@@ -132,3 +132,24 @@ def test_profile_with_tags_does_not_scan():
     p = profile_from_experiences("u", exps, norm)
     names = {norm.display_name(s.skill_id) for s in p.skills}
     assert "SQL" not in names and "Excel" not in names
+
+
+def test_returns_at_most_five_careers():
+    """2026-10-24: the cap moved from 3 to 5. Seven careers all pass the score threshold;
+    the service must return exactly five, in score order when no LLM is available."""
+    catalog = [{"id": f"c{i}", "title": f"職涯{i}", "subtitleEn": f"C{i}", "category": "數據",
+                "isAcademic": False, "salary": "40-65k", "openings": "10",
+                "requiredSkills": ["SQL"] if i % 2 else ["SQL", "Excel"]} for i in range(7)]
+    recs = recommend("我喜歡整理數據", EXPS, normalizer=NORM,
+                     retriever=StubRetriever(cids=tuple(c["id"] for c in catalog)),
+                     scorer=SCORER, llm=None, catalog=catalog)
+    assert len(recs) == 5
+    scores = [r.matchScore for r in recs]
+    assert scores == sorted(scores, reverse=True)
+
+
+def test_fewer_than_five_when_fewer_pass_threshold():
+    """The cap is a maximum, not a quota: only careers scoring >= 30 are returned."""
+    recs = recommend("我想做產品", EXPS, normalizer=NORM, retriever=StubRetriever(),
+                     scorer=SCORER, llm=None, catalog=CATALOG)
+    assert 0 < len(recs) < 5

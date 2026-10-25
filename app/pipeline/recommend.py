@@ -105,7 +105,7 @@ def _llm_rank(llm, query, skill_names, candidates) -> tuple[list[str], dict]:
 
 def recommend(query: str, experiences: list[ExperienceIn], *, normalizer, retriever,
               scorer, llm=None, catalog: list[dict] | None = None,
-              top_n: int = 3, min_score: int = 30,
+              top_n: int = 5, min_score: int = 30,
               debug: dict | None = None) -> list[CareerRecOut]:
     catalog = catalog if catalog is not None else load_catalog()
     profile = profile_from_experiences("dev_user_001", experiences, normalizer)
