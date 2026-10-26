@@ -28,6 +28,7 @@ from app.schemas.api import (
     CustomizeFullRequest, CustomizeFullResponse, CustomizeRequest, CustomizeResponse,
     DraftExperience,
     JobsFitRequest, JobFitOut, JobsFitAllResponse,
+    JobExtractSkillsRequest, JobExtractSkillsResponse,
     MasterGenerateRequest, MasterGenerateResponse,
     OverviewRequest, OverviewResponse,
     ReinforceRequest, ReinforceResponse,
@@ -192,6 +193,18 @@ def job_fit(job_id: str, req: JobsFitRequest):
     normalizer = _get_normalizer()
     profile = profile_from_experiences(req.userId, req.experiences, normalizer)
     return fit_one(profile, job, _get_scorer())
+
+
+@router.post("/jobs/extract-skills", response_model=JobExtractSkillsResponse)
+def jobs_extract_skills(req: JobExtractSkillsRequest) -> JobExtractSkillsResponse:
+    """使用者新增職缺時補 requiredSkills：受限選擇抽技能，回給後端自己寫回。
+    無金鑰不回 golden（後端分不出真假會當真的存）——退回字面掃描，source=vocab_scan。"""
+    from app.pipeline.job_skills import extract_job_skills
+    try:
+        llm = OpenAICompatibleLLM()          # 生成任務,吃全域預設模型
+    except LLMUnavailable:
+        llm = None                            # 無金鑰 → extract_job_skills 走字面掃描退路
+    return JobExtractSkillsResponse(**extract_job_skills(req.title, req.jdText, llm=llm))
 
 
 @router.post("/resume/customize", response_model=CustomizeResponse,

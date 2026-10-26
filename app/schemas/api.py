@@ -128,6 +128,23 @@ class JobsFitAllResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# 端點：POST /jobs/extract-skills（使用者新增職缺時補 requiredSkills）
+# 後端新增職缺後呼叫，拿回技能自己寫回 jobs/job_targets（跟適配分數一樣存著）。
+# title/jdText 必填；jdText 空字串 → 422。不需使用者資料，不帶 userId。
+# ---------------------------------------------------------------------------
+
+class JobExtractSkillsRequest(BaseModel):
+    title: str
+    jdText: str = Field(min_length=1)       # 空字串觸發 422（合約：jd 必須有內容才抽）
+
+
+class JobExtractSkillsResponse(BaseModel):
+    requiredSkills: list[str] = Field(default_factory=list)
+    requiredSkillsSource: str               # llm_extract / vocab_scan（與 jobs 欄位同名）
+    otherSkills: list[str] = Field(default_factory=list)   # JD 有、詞彙表沒有；v1 先空
+
+
+# ---------------------------------------------------------------------------
 # 端點 5：POST /resume/customize（B1；鏡射 JdCustomizer.kt CustomizedItem）
 # 注意：coveredKeywords/jdKeywords 在前端掛在 MockJdCustomizer 物件上、不在 interface，
 # 但客製結果頁需要它們算命中率 → 一併放進 response，D11/D12 抽 provider 時對齊。
