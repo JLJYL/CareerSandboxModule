@@ -21,6 +21,10 @@ from app.pipeline.vocab import VOCAB_PATH
 # 拉高到 4000 讓條件段落進得來（端點與批次共用；批次 8 筆/次仍在 gpt-4o-mini 脈絡內）。
 _MAX_JD = 4000
 
+# 格式壞掉時回饋給模型、重試一次用（照 extraction/customize 的做法）。
+_RETRY_HINT = ("\n\n上一次輸出不是合法 JSON 或缺 items 陣列。"
+               "這次只輸出 {\"items\":[{\"skills\":[...]}]}，不要任何其他文字。")
+
 
 def vocab_names() -> list[str]:
     return [e["name_zh"] for e in json.loads(VOCAB_PATH.read_text(encoding="utf-8"))]
@@ -65,6 +69,26 @@ def parse_items(raw: str, n: int) -> list[list[str]]:
     return out
 
 
+def parse_items_strict(raw: str, n: int) -> list[list[str]]:
+    """嚴格解析：JSON 壞、非物件、items 不是 list、或筆數不足都丟 ValueError。
+
+    為什麼要分嚴格版：parse_items 把解析失敗吞成空陣列，和「模型正常回了空技能」
+    （{"items":[{"skills":[]}]}）結果一樣，呼叫端分不出「壞格式」與「真的沒技能」——
+    壞格式會被當成抽完的空清單存進 DB、永不重抽（B 2026-10-26 review 抓到）。嚴格版
+    讓端點能對壞格式重試／退 vocab_scan，對真空清單維持 llm_extract。"""
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"非合法 JSON：{e}") from e
+    if not isinstance(data, dict) or not isinstance(data.get("items"), list):
+        raise ValueError("缺 items 陣列或 items 不是 list")
+    items = data["items"]
+    if len(items) < n:
+        raise ValueError(f"items 筆數不足：{len(items)} < {n}")
+    return [[str(s).strip() for s in (x.get("skills", []) if isinstance(x, dict) else [])
+             if str(s).strip()] for x in items[:n]]
+
+
 def filter_vocab(picks: list[str], vocab_set: set[str]) -> list[str]:
     """防自創：只收詞彙表內的 name_zh，去重保序。"""
     return list(dict.fromkeys(s for s in picks if s in vocab_set))
@@ -85,14 +109,18 @@ def extract_job_skills(title: str, jd_text: str, *, llm=None) -> dict:
     vocab = vocab_names()
     vocab_set = set(vocab)
     if llm is not None:
-        try:
-            raw = llm.complete(build_system(vocab),
-                               format_jobs([{"title": title, "jd": jd_text}]),
-                               force_json=True)
-            skills = filter_vocab(parse_items(raw, 1)[0], vocab_set)
-            return {"requiredSkills": skills, "requiredSkillsSource": "llm_extract",
-                    "otherSkills": []}
-        except Exception:
-            pass  # LLM 失敗不讓使用者新增卡住：退回字面掃描，之後有金鑰再重抽
+        system = build_system(vocab)
+        user = format_jobs([{"title": title, "jd": jd_text}])
+        err: Exception | None = None
+        for attempt in range(2):            # 原始一次 ＋ 壞格式／呼叫失敗時重試一次
+            prompt = user if attempt == 0 else user + _RETRY_HINT + f"\n上次的具體問題：{err}"
+            try:
+                raw = llm.complete(system, prompt, force_json=True)
+                picks = parse_items_strict(raw, 1)[0]     # 壞格式丟 ValueError → 重試／退路
+                return {"requiredSkills": filter_vocab(picks, vocab_set),
+                        "requiredSkillsSource": "llm_extract", "otherSkills": []}
+            except Exception as e:           # complete() 失敗 或 解析失敗：記下原因再重試
+                err = e
+        # 原始＋重試都失敗 → 退字面掃描；不把壞格式當成「抽完的空清單」存起來（之後有金鑰再重抽）
     return {"requiredSkills": scan_skills(f"{title} {jd_text}"),
             "requiredSkillsSource": "vocab_scan", "otherSkills": []}

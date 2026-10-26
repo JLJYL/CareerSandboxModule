@@ -21,6 +21,18 @@ class _FakeLLM:
         return self._payload
 
 
+class _SeqLLM:
+    """每次 complete 回下一個 payload（測重試：先壞後好）。"""
+    def __init__(self, payloads):
+        self._payloads = list(payloads)
+        self._i = 0
+
+    def complete(self, system: str, user: str, force_json: bool = False) -> str:
+        v = self._payloads[min(self._i, len(self._payloads) - 1)]
+        self._i += 1
+        return v
+
+
 # --------------------------------------------------------------- 共用函式（單元）
 
 def test_extract_llm_path_filters_non_vocab():
@@ -44,6 +56,33 @@ def test_extract_llm_failure_degrades_to_scan():
             raise RuntimeError("network down")
     r = extract_job_skills("資料分析師", "熟 資料分析", llm=_BoomLLM())
     assert r["requiredSkillsSource"] == "vocab_scan"            # 失敗不卡使用者新增
+
+
+def test_extract_not_json_falls_back_to_scan():
+    # 壞格式不能被當成「抽完的空清單」存成 llm_extract（B review）
+    r = extract_job_skills("資料分析師", "熟 資料分析", llm=_FakeLLM("這不是 JSON"))
+    assert r["requiredSkillsSource"] == "vocab_scan"
+
+
+def test_extract_wrong_key_falls_back_to_scan():
+    r = extract_job_skills("資料分析師", "熟 資料分析",
+                           llm=_FakeLLM('{"data":[{"skills":["機器學習"]}]}'))
+    assert r["requiredSkillsSource"] == "vocab_scan"
+
+
+def test_extract_genuine_empty_stays_llm_extract():
+    # 結構合法、技能真的空 → 維持 llm_extract（不該退 vocab_scan、不該重抽）
+    r = extract_job_skills("x", "y", llm=_FakeLLM('{"items":[{"skills":[]}]}'))
+    assert r["requiredSkillsSource"] == "llm_extract"
+    assert r["requiredSkills"] == []
+
+
+def test_extract_retries_then_succeeds():
+    # 第一次壞、重試一次拿到合法 → llm_extract（不白白退成 vocab_scan）
+    llm = _SeqLLM(["壞掉的輸出", '{"items":[{"skills":["機器學習"]}]}'])
+    r = extract_job_skills("x", "y", llm=llm)
+    assert r["requiredSkillsSource"] == "llm_extract"
+    assert r["requiredSkills"] == ["機器學習"]
 
 
 # --------------------------------------------------------------- 端點
