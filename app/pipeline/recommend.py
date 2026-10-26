@@ -102,6 +102,19 @@ def _llm_rank(llm, query, skill_names, candidates) -> tuple[list[str], dict]:
     notes = {k: str(v) for k, v in (data.get("notes") or {}).items() if k in legal}
     return order, notes
 
+def career_text(career: dict, career_snippets: list[dict]) -> str:
+    """Text the semantic leg compares the profile against. Retrieved KB snippets when the
+    query surfaced any for this career; otherwise the catalog entry itself (title, English
+    subtitle, required skills). Only 89 of 587 KB entries carry a careerId, so without this
+    fallback most careers lost the semantic leg after the scorer stopped deriving a JD from
+    the title (#20), and coverage alone rarely clears the 30-point threshold. Unlike a bare
+    job title, a career entry always lists its skills (about 8), so the text is substantive."""
+    texts = [s["text"] for s in career_snippets[:2]]
+    if texts:
+        return " ".join(texts)
+    parts = [career.get("title", ""), career.get("subtitleEn", ""), *career.get("requiredSkills", [])]
+    return " ".join(p for p in parts if p).strip()
+
 
 def recommend(query: str, experiences: list[ExperienceIn], *, normalizer, retriever,
               scorer, llm=None, catalog: list[dict] | None = None,
@@ -133,7 +146,7 @@ def recommend(query: str, experiences: list[ExperienceIn], *, normalizer, retrie
         fit = scorer.score(profile, JobRequirement(
             job_id=c["id"], title=c["title"],
             required_skills=c.get("requiredSkills", []),
-            jd_text=" ".join(s["text"] for s in snippets.get(c["id"], [])[:2])))
+            jd_text=career_text(c, snippets.get(c["id"], []))))
         candidates.append({**c, "matchScore": fit.match_score,
                            "covered": fit.covered_skills,
                            "missing": fit.missing_skills,

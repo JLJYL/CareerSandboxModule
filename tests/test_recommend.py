@@ -153,3 +153,23 @@ def test_fewer_than_five_when_fewer_pass_threshold():
     recs = recommend("我想做產品", EXPS, normalizer=NORM, retriever=StubRetriever(),
                      scorer=SCORER, llm=None, catalog=CATALOG)
     assert 0 < len(recs) < 5
+    
+
+def test_career_without_snippets_keeps_semantic_leg():
+    """2026-10-26: a marketing user got an empty list because careers with no retrieved KB
+    snippet were scored on coverage alone (2 of 8 skills = 25 < 30). The catalog entry must
+    stand in as the career text so the semantic leg still runs."""
+    from app.pipeline.recommend import career_text
+    from app.providers.embeddings import FakeEmbedding
+    from app.schemas.domain import JobRequirement
+    career = {"id": "content_creator", "title": "數位內容製作", "subtitleEn": "Content Creator",
+              "requiredSkills": ["Adobe Photoshop", "Excel", "Premiere", "短影音"]}
+    text = career_text(career, [])
+    assert "數位內容製作" in text and "Premiere" in text
+    assert career_text(career, [{"text": "摘錄A", "url": ""}, {"text": "摘錄B", "url": ""}]) == "摘錄A 摘錄B"
+    profile = __import__("app.pipeline.recommend", fromlist=["x"]).profile_from_experiences(
+        "u", EXPS, NORM)
+    fit = WeightedScorer(NORM, embedding=FakeEmbedding()).score(profile, JobRequirement(
+        job_id="content_creator", title=career["title"], required_skills=career["requiredSkills"],
+        jd_text=text))
+    assert fit.score_basis == "both"
