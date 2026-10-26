@@ -4,6 +4,10 @@
 
 分工鐵律:分數與差集只認 Scorer;LLM 只排序與寫學術備註;所有展示文字過 sanitize。
 """
+
+import re
+import unicodedata
+from functools import lru_cache
 import json
 from pathlib import Path
 
@@ -20,19 +24,37 @@ def load_catalog(path: Path = _CATALOG_PATH) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+@lru_cache(maxsize=None)
+def _ascii_alias_pattern(key: str) -> re.Pattern:
+    """Whole-word pattern for an ASCII alias key. norm_key strips spaces, so a multi-word
+    alias ("machine learning" -> "machinelearning") may match with or without spaces."""
+    body = r"\s*".join(re.escape(ch) for ch in key)
+    return re.compile(rf"(?<![a-z0-9]){body}(?![a-z0-9])")
+
+
 def scan_skills_in_text(text: str, min_len: int = 2) -> list[CanonicalSkill]:
     """Deterministic vocabulary scan: every alias / canonical name that appears verbatim
-    (after norm_key) in the text. Used as a stand-in for tags when an experience has none
-    (chat-created experiences are stored without tags). No LLM, no embedding, so the
-    result is reproducible and costs nothing. Aliases shorter than min_len are skipped
-    to avoid single-character false hits."""
+    in the text. Used as a stand-in for tags when an experience has none (chat-created
+    experiences are stored without tags) and as the no-key fallback of /jobs/extract-skills.
+    No LLM, no embedding, so the result is reproducible and costs nothing.
+
+    CJK aliases match as substrings. ASCII aliases must stand alone: plain substring
+    matching turned "email" into 機器學習 (ai), "digital" into Git, "excellent" into Excel
+    and "password" into Word. Aliases shorter than min_len are skipped."""
     key = norm_key(text)
     if not key:
         return []
+    lowered = unicodedata.normalize("NFKC", text or "").lower()
     seen: dict[str, CanonicalSkill] = {}
     for alias_key, skill in alias_index().items():
-        if len(alias_key) >= min_len and alias_key in key:
-            seen.setdefault(skill.skill_id, skill)
+        if len(alias_key) < min_len:
+            continue
+        if alias_key.isascii():
+            if not _ascii_alias_pattern(alias_key).search(lowered):
+                continue
+        elif alias_key not in key:
+            continue
+        seen.setdefault(skill.skill_id, skill)
     return list(seen.values())
 
 
