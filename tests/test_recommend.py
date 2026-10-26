@@ -173,3 +173,20 @@ def test_career_without_snippets_keeps_semantic_leg():
         job_id="content_creator", title=career["title"], required_skills=career["requiredSkills"],
         jd_text=text))
     assert fit.score_basis == "both"
+    
+    
+
+def test_scan_ascii_aliases_need_word_boundaries():
+    """2026-10-26 review of /jobs/extract-skills: its no-key fallback stores scan results, and
+    substring matching misfired on ordinary English words inside JDs."""
+    from app.pipeline.recommend import scan_skills_in_text
+    def names(t):
+        return {s.name_zh for s in scan_skills_in_text(t)}
+    assert "機器學習" not in names("履歷請寄 email 至 hr@abc.com")
+    assert "Git" not in names("digital marketing")
+    assert "Excel" not in names("excellent communication skills")
+    assert "Word" not in names("keyword research and password policy")
+    assert "MES" not in names("work times are flexible")
+    assert {"Excel", "Git", "SQL"} <= names("熟悉 Excel、Git 與 SQL")   # standalone and next to CJK
+    assert "Adobe Photoshop" in names("熟悉Photoshop")
+    assert "機器學習" in names("具 machine learning 專案經驗")             # multi-word alias with spaces
