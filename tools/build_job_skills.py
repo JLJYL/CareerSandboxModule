@@ -44,8 +44,9 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from app.config import settings  # noqa: E402,F401  副作用:載入 .env
+from app.pipeline.job_skills import (  # noqa: E402  prompt/解析/過濾與端點共用同一份
+    build_system, filter_vocab, format_jobs, parse_items, vocab_names)
 from app.pipeline.normalize import VocabNormalizer  # noqa: E402
-from app.pipeline.vocab import VOCAB_PATH, load_vocabulary  # noqa: E402
 
 _RAW = REPO / "data" / "job_skills_raw.jsonl"
 _NORM = REPO / "data" / "job_skills_normalized.jsonl"
@@ -55,48 +56,9 @@ _EMPTY_QUERY = {"$or": [{"requiredSkills": {"$exists": False}},
                        {"requiredSkills": None}, {"requiredSkills": []}]}
 
 
-def _vocab_names() -> list[str]:
-    return [e["name_zh"] for e in json.loads(VOCAB_PATH.read_text(encoding="utf-8"))]
-
-
 # ---------------------------------------------------------------------------
-# extract
+# extract（prompt／解析／詞彙表過濾已移到 app/pipeline/job_skills.py，與端點共用同一份）
 # ---------------------------------------------------------------------------
-
-def _system(vocab: list[str]) -> str:
-    return ("你是職缺分析助手。以下是一份「職能技能清單」。對每個職缺，從清單中挑出"
-            "「做這份工作明確需要具備」的技能與證照。\n\n"
-            "規則：\n"
-            "1. 只能從清單挑，用清單上的原字，不可自創或改字。\n"
-            "2. 只挑 JD 明確要求或強烈隱含的；不要沾邊就挑。不抽福利、公司介紹、年資、學歷。\n"
-            "3. 優先挑『具體的專業／技術／工具／領域技能』（例如 SQL、Excel、顧客關係管理、"
-            "財務報表製作、品質管理、故障排除、文書處理軟體操作、會計核算和帳務處理）。\n"
-            "4. 通用軟實力（溝通能力、溝通協調、時間管理、主動學習、持續學習、問題分析與解決能力、"
-            "組織能力、團隊合作、協調合作、服務導向、學習能力、批判性思考）不要拿來灌水：有具體技能時"
-            "最多搭配 1 個。但若這份工作本質就是靠這些軟實力（客服、門市、接待、業務），真的沒有具體"
-            "技能可挑，就挑最關鍵的 1 到 2 個——優先具體，但別因為排斥軟實力而把該有技能的職缺變成空的。\n"
-            "5. 一筆挑 2 到 6 個；只有 JD 太短或全是公司介紹、看不出任何技能，才回空陣列 []。\n"
-            "6. 嚴格按輸入順序，只回 JSON：{\"items\":[{\"skills\":[...]}, ...]}，筆數與輸入相同。\n\n"
-            "技能清單：\n" + "、".join(vocab))
-
-
-def _prompt(batch: list[dict]) -> str:
-    lines = []
-    for i, j in enumerate(batch, 1):
-        jd = ("\n".join(p for p in (j.get("description"), j.get("conditionOther")) if p))[:900]
-        lines.append(f"[{i}] 職稱：{j.get('title', '')}\n    JD：{jd}")
-    return f"共 {len(batch)} 筆職缺，請逐筆從清單挑技能：\n\n" + "\n\n".join(lines)
-
-
-def _parse(raw: str, n: int) -> list[list[str]]:
-    try:
-        items = json.loads(raw).get("items", [])
-    except (json.JSONDecodeError, AttributeError):
-        return [[] for _ in range(n)]
-    out = [[str(s).strip() for s in (x.get("skills", []) if isinstance(x, dict) else [])
-            if str(s).strip()] for x in items[:n]]
-    out += [[] for _ in range(n - len(out))]
-    return out
 
 
 def _iter_jobs(args):
@@ -121,7 +83,7 @@ def _iter_jobs(args):
 
 
 def cmd_extract(args) -> None:
-    vocab = _vocab_names()
+    vocab = vocab_names()
     vocab_set = set(vocab)
     jobs = list(_iter_jobs(args))
     if args.limit:
@@ -144,16 +106,23 @@ def cmd_extract(args) -> None:
         if llm_jobs:
             from app.providers.llm import OpenAICompatibleLLM
             llm = OpenAICompatibleLLM()
-            system = _system(vocab)
+            system = build_system(vocab)
             for start in range(0, len(llm_jobs), args.batch):
                 batch = llm_jobs[start:start + args.batch]
+                # JD 組文：conditionOther（條件）放前面、description（含公司介紹）在後，
+                # 避免上限內被公司介紹擠掉條件（format_jobs 內再截到 _MAX_JD）。
+                batch_jobs = [{"title": j.get("title", ""),
+                               "jd": "\n".join(p for p in (j.get("conditionOther"),
+                                                           j.get("description")) if p)}
+                              for j in batch]
                 try:
-                    picks = _parse(llm.complete(system, _prompt(batch), force_json=True), len(batch))
+                    picks = parse_items(
+                        llm.complete(system, format_jobs(batch_jobs), force_json=True), len(batch))
                 except Exception as e:
                     print(f"  ! batch {start} 失敗：{e}", flush=True)
                     picks = [[] for _ in batch]
                 for k, j in enumerate(batch):
-                    valid = [s for s in picks[k] if s in vocab_set]   # 防自創
+                    valid = filter_vocab(picks[k], vocab_set)   # 防自創
                     f.write(json.dumps({"_id": str(j.get("_id", "")),
                                         "source": (j.get("source") or "").lower() or "unknown",
                                         "method": "llm_extract", "title": j.get("title", ""),
@@ -168,7 +137,7 @@ def cmd_extract(args) -> None:
 # ---------------------------------------------------------------------------
 
 def cmd_normalize(args) -> None:
-    vocab_set = set(_vocab_names())
+    vocab_set = set(vocab_names())
     norm = VocabNormalizer()                                # cake tags 用；alias-only 對標準詞足夠
     rows = [json.loads(l) for l in _RAW.read_text(encoding="utf-8").splitlines() if l.strip()]
 

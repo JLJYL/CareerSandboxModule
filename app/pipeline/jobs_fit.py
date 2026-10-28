@@ -87,8 +87,10 @@ def _from_db_doc(doc: dict) -> dict:
 
 def _from_target_doc(doc: dict) -> dict:
     """Map a user-created JobTarget (collection `job_targets`: pasted JD, no crawled
-    source) to the pipeline shape. jdKeywords, if already extracted, double as
-    requiredSkills so coverage scoring has something to work with."""
+    source) to the pipeline shape. requiredSkills come from the `requiredSkills` field the
+    backend fills via /jobs/extract-skills on creation — NOT from jdKeywords: customize
+    writes skills the user already holds (and that happen to appear in the JD) back into
+    jdKeywords, so reusing jdKeywords as requirements inflates the next fit's coverage."""
     return {
         "jobId": str(doc["_id"]),
         "title": doc.get("title", ""),
@@ -96,7 +98,7 @@ def _from_target_doc(doc: dict) -> dict:
         "tags": [],
         "salary": "面議",
         "deadline": "長期招募",
-        "requiredSkills": doc.get("jdKeywords") or [],
+        "requiredSkills": doc.get("requiredSkills") or [],
         "jd": doc.get("jdSnapshot", ""),
         "sourceUrl": "",
     }
@@ -145,8 +147,9 @@ def get_job(job_id: str) -> dict | None:
                     src = tdoc.get("jobId") or ""
                     jdoc = db["jobs"].find_one({"sourceId": src}) if src else None
                     job = _from_db_doc(jdoc) if jdoc is not None else _from_target_doc(tdoc)
-                    if not job.get("requiredSkills") and tdoc.get("jdKeywords"):
-                        job["requiredSkills"] = tdoc["jdKeywords"]
+                    # No jdKeywords fallback: jdKeywords is polluted by customize (user-held
+                    # skills present in the JD), so it inflates coverage. requiredSkills now
+                    # comes from /jobs/extract-skills via the crawled doc or the target doc.
                     job["jobId"] = job_id
                     return job
         except Exception:
